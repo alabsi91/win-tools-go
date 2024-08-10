@@ -75,16 +75,17 @@ func (chocolatey) InstallChocolatey() {
 	}
 }
 
-func (chocolatey *chocolatey) InstallChocolateyPackage(name string) {
+func (chocolatey *chocolatey) InstallChocolateyPackage(packageName string) {
 	chocolateyPath := chocolatey.GetChocolateyPath()
 	powershell := Powershell.GetShellPath()
 
 	cmd := exec.Command(
 		powershell,
 		"-Command",
-		"Start-Process pwsh -Wait -Verb RunAs",
-		"-ArgumentList",
-		fmt.Sprintf(`'-NoExit', '-C', '"%s" install %s -yf; start-sleep 5; exit'`, chocolateyPath, name),
+		fmt.Sprintf(`&"%s"`, chocolateyPath),
+		"install",
+		packageName,
+		"-yf",
 	)
 
 	cmd.Stdin = os.Stdin
@@ -92,12 +93,12 @@ func (chocolatey *chocolatey) InstallChocolateyPackage(name string) {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Start(); err != nil {
-		Log.Fatal("Failed to install chocolatey package:", name)
+		Log.Fatal("Failed to install chocolatey package:", packageName)
 		os.Exit(1)
 	}
 
 	if err := cmd.Wait(); err != nil {
-		Log.Fatal("Failed to install chocolatey package:", name)
+		Log.Fatal("Failed to install chocolatey package:", packageName)
 		os.Exit(1)
 	}
 }

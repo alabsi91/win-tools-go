@@ -1,9 +1,8 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
-	"sync"
+	"strings"
 
 	"github.com/charmbracelet/huh"
 )
@@ -20,38 +19,7 @@ func askToInstallChocolatey() bool {
 	return answer
 }
 
-func askForNumberOfWorkers() int {
-	var answer int = 0
-
-	validate := func(s string) error {
-		_, err := fmt.Sscan(s, &answer)
-		if err != nil {
-			return errors.New("please enter a valid number")
-		}
-		return nil
-	}
-
-	huh.NewInput().
-		Title("How many workers do you want to use?").
-		Placeholder("4").
-		Validate(validate).
-		Run()
-
-	return answer
-}
-
-func worker(packages []string, tasks <-chan int, wg *sync.WaitGroup) {
-	defer wg.Done()
-
-	for task := range tasks {
-		index := task - 1
-		packageName := packages[index]
-		Log.Info("\n", fmt.Sprintf(`%d. installing package: "%s"`, task, packageName))
-		Chocolatey.InstallChocolateyPackage(packageName)
-	}
-}
-
-func InstallPackages(configFilePath *string, numberOfWorkers *int) {
+func InstallPackages(configFilePath *string) {
 	// has admin privileges
 	isAdmin := Powershell.IsAdmin()
 
@@ -107,33 +75,9 @@ func InstallPackages(configFilePath *string, numberOfWorkers *int) {
 		Chocolatey.InstallChocolatey()
 	}
 
-	numWorkers := 4
-	if numberOfWorkers == nil {
-		numWorkers = askForNumberOfWorkers()
-	}
-
-	numTasks := len(yamlData.Packages)
-
 	Log.Info("\n" + fmt.Sprintf(`Found "%d" packages`, len(yamlData.Packages)))
 
-	var wg sync.WaitGroup
-	tasks := make(chan int, numTasks) // Buffered channel for tasks
-
-	// Start the workers
-	for i := 0; i <= numWorkers; i++ {
-		wg.Add(1)
-		go worker(yamlData.Packages, tasks, &wg)
-	}
-
-	// Send tasks to the workers
-	for i := 1; i <= numTasks; i++ {
-		tasks <- i
-	}
-
-	close(tasks) // Close the tasks channel to signal no more tasks
-
-	// Wait for all workers to finish
-	wg.Wait()
+	Chocolatey.InstallChocolateyPackage(strings.Join(yamlData.Packages, " "))
 
 	Log.Success("\nDone\n")
 }

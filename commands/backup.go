@@ -3,9 +3,8 @@ package commands
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
-
-	cp "github.com/otiai10/copy"
 )
 
 func BackupData(configFilePath *string) {
@@ -66,37 +65,34 @@ func BackupData(configFilePath *string) {
 
 		Log.Info(fmt.Sprintf(`Copying "%s"`, path))
 
-		info, err := os.Stat(path)
-		if err != nil {
-			Log.Error("\nerror getting path info:", path, "\n")
-			return
-		}
-
-		// copy folder recursively
-		if info.IsDir() {
-			baseFilename := filepath.Base(path)
-			targetPath := filepath.Join(yamlData.Backup.Target, baseFilename)
-
-			err = cp.Copy(path, targetPath)
-
-			if err != nil {
-				Log.Error("\nerror copying folder", path, "\n")
-				return
-			}
-
-			continue
-		}
-
-		// copy file
 		baseFilename := filepath.Base(path)
 		targetPath := filepath.Join(yamlData.Backup.Target, baseFilename)
 
-		err = Utils.CopyFile(path, targetPath)
+		powershell := Powershell.GetShellPath()
 
-		if err != nil {
-			Log.Error("\nerror copying file", path, "\n")
-			return
+		cmd := exec.Command(
+			powershell,
+			"-Command",
+			"Copy-Item",
+			"-Path", fmt.Sprintf(`"%s"`, path),
+			"-Destination", fmt.Sprintf(`"%s"`, targetPath),
+			"-Recurse", "-Force",
+		)
+
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		if err := cmd.Start(); err != nil {
+			Log.Fatal(err.Error())
+			os.Exit(1)
 		}
+
+		if err := cmd.Wait(); err != nil {
+			Log.Fatal(err.Error())
+			os.Exit(1)
+		}
+
 	}
 
 	Log.Success("\nBackup completed\n")

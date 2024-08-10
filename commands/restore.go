@@ -2,11 +2,18 @@ package commands
 
 import (
 	"fmt"
+	"io/fs"
 	"os"
+	"os/exec"
 	"path/filepath"
-
-	cp "github.com/otiai10/copy"
 )
+
+type CustomFS struct{}
+
+func (c CustomFS) Open(name string) (fs.File, error) {
+
+	return os.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+}
 
 func RestoreData(configFilePath *string) {
 	// no config file path provided, ask for it
@@ -61,28 +68,29 @@ func RestoreData(configFilePath *string) {
 
 		Log.Info(fmt.Sprintf(`Copying "%s" to "%s"`, fromPath, path))
 
-		info, err := os.Stat(fromPath)
-		if err != nil {
-			Log.Error("\nerror getting path info:", fromPath, "\n")
-			return
+		powershell := Powershell.GetShellPath()
+
+		cmd := exec.Command(
+			powershell,
+			"-Command",
+			"Copy-Item",
+			"-Path", fmt.Sprintf(`"%s"`, fromPath),
+			"-Destination", fmt.Sprintf(`"%s"`, path),
+			"-Recurse", "-Force",
+		)
+
+		cmd.Stdin = os.Stdin
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
+
+		if err := cmd.Start(); err != nil {
+			Log.Fatal(err.Error())
+			os.Exit(1)
 		}
 
-		// copy folder recursively
-		if info.IsDir() {
-			err = cp.Copy(fromPath, path)
-			if err != nil {
-				Log.Error("\nerror copying folder", path, "\n")
-				return
-			}
-
-			continue
-		}
-
-		// copy file
-		err = Utils.CopyFile(fromPath, path)
-		if err != nil {
-			Log.Error("\nerror copying file", path, "\n")
-			return
+		if err := cmd.Wait(); err != nil {
+			Log.Fatal(err.Error())
+			os.Exit(1)
 		}
 	}
 

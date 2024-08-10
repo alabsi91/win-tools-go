@@ -32,15 +32,10 @@ type AutoLogonArgs struct {
 	BackupFile   *string `arg:"--backup-file" placeholder:"" help:"If specified the existing settings such as the system banner text will be backed up to the specified file"`
 }
 
-type ChocoInstallArgs struct {
-	ConfigPath      *string `arg:"--config" placeholder:"[PATH]" help:"YAML config file path"`
-	NumberOfWorkers *int    `arg:"--workers" placeholder:"[Number]" help:"Number of workers to use for the installation process"`
-}
-
 var args struct {
 	Backup               *ConfigPathArg      `arg:"subcommand:backup" help:"Create a backup of specified paths as defined in a YAML configuration file."`
 	Restore              *ConfigPathArg      `arg:"subcommand:restore" help:"Restore files and directories from a backup using the paths specified in a YAML configuration file."`
-	Install              *ChocoInstallArgs   `arg:"subcommand:choco-install" help:"Install Chocolatey packages according to the list provided in a YAML configuration file."`
+	Install              *ConfigPathArg      `arg:"subcommand:choco-install" help:"Install Chocolatey packages according to the list provided in a YAML configuration file."`
 	RunScripts           *ConfigPathArg      `arg:"subcommand:run-scripts" help:"Execute a series of scripts defined in a YAML configuration file."`
 	SetEnvs              *ConfigPathArg      `arg:"subcommand:set-envs" help:"Set environment variables as defined in a YAML configuration file."`
 	CreateConfigTemplate *CreateTemplateArgs `arg:"subcommand:create-template" help:"Generate a new YAML template for configuration, including placeholders for paths, scripts, and environment variables."`
@@ -64,7 +59,7 @@ func main() {
 		return
 	}
 	if args.Install != nil {
-		commands.InstallPackages(args.Install.ConfigPath, args.Install.NumberOfWorkers)
+		commands.InstallPackages(args.Install.ConfigPath)
 		return
 	}
 	if args.RunScripts != nil {
@@ -128,7 +123,7 @@ func main() {
 	case "restore":
 		commands.RestoreData(nil)
 	case "install":
-		commands.InstallPackages(nil, nil)
+		commands.InstallPackages(nil)
 	case "run-scripts":
 		commands.RunScripts(nil)
 	case "set-envs":
