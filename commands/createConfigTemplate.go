@@ -93,6 +93,7 @@ packages:
   # --- TOOLS ---
 
   # --- DEV ---
+  - visualstudio2022community --package-parameters "--passive --locale en-US" # Example: with parameters
 
 # A list of scripts to be executed
 scripts:

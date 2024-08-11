@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/alabsi91/win-tools/commands/utils"
 )
@@ -63,7 +62,11 @@ func InstallPackages(configFilePath *string) {
 
 	Log.Info("\n" + fmt.Sprintf(`Found "%d" packages`, len(yamlData.Packages)))
 
-	Chocolatey.InstallPackage(strings.Join(yamlData.Packages, " "))
+	// loop through packages and install them
+	for _, packageName := range yamlData.Packages {
+		Log.Info("\n"+fmt.Sprintf(`Installing package: "%s"`, packageName), "\n")
+		Chocolatey.InstallPackage(packageName)
+	}
 
 	Log.Success("\nDone\n")
 }

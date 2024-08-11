@@ -72,6 +72,10 @@ func BackupData(configFilePath *string) {
 		baseFilename := filepath.Base(path)
 		targetPath := filepath.Join(yamlData.Backup.Target, baseFilename)
 
+		if utils.IsPathExists(targetPath) {
+			targetPath = filepath.Clean(yamlData.Backup.Target)
+		}
+
 		err := Powershell.RunPathThroughCmd(
 			"Copy-Item",
 			"-Path", fmt.Sprintf(`"%s"`, path),

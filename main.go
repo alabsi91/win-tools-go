@@ -95,6 +95,8 @@ func main() {
 		return
 	}
 
+	Log.Info("\nRun `win-tools --help` for more information.\n")
+
 	// no command provided, ask for it
 	var chosenCommand string
 

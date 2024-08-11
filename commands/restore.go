@@ -61,15 +61,19 @@ func RestoreData(configFilePath *string) {
 
 	// loop over paths and copy the files and folders to the target path
 	utils.PreparePathsString(yamlData.Backup.Paths)
-	for _, path := range yamlData.Backup.Paths {
-		fromPath := filepath.Join(yamlData.Backup.Target, filepath.Base(path))
+	for _, toPath := range yamlData.Backup.Paths {
+		fromPath := filepath.Join(yamlData.Backup.Target, filepath.Base(toPath))
 
-		Log.Info(fmt.Sprintf(`Copying "%s" to "%s"`, fromPath, path))
+		if utils.IsPathExists(toPath) {
+			toPath = filepath.Dir(toPath)
+		}
+
+		Log.Info(fmt.Sprintf(`Copying "%s" to "%s"`, fromPath, toPath))
 
 		err := Powershell.RunPathThroughCmd(
 			"Copy-Item",
 			"-Path", fmt.Sprintf(`"%s"`, fromPath),
-			"-Destination", fmt.Sprintf(`"%s"`, path),
+			"-Destination", fmt.Sprintf(`"%s"`, toPath),
 			"-Recurse", "-Force",
 		)
 
