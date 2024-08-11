@@ -88,6 +88,7 @@ func (chocolatey *chocolatey) InstallPackage(packageName string) {
 		"install",
 		packageName,
 		"-yf",
+		"--ignore-checksum",
 	)
 
 	cmd.Stdin = os.Stdin
