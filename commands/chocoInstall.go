@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/alabsi91/win-tools/commands/utils"
 )
@@ -65,7 +66,14 @@ func InstallPackages(configFilePath *string) {
 	// loop through packages and install them
 	for _, packageName := range yamlData.Packages {
 		Log.Info("\n"+fmt.Sprintf(`Installing package: "%s"`, packageName), "\n")
-		Chocolatey.InstallPackage(packageName)
+
+		openInNewWindow := false
+		if strings.Contains(packageName, "--new-window") {
+			openInNewWindow = true
+			packageName = strings.ReplaceAll(packageName, "--new-window", "")
+		}
+
+		Chocolatey.InstallPackage(packageName, openInNewWindow)
 	}
 
 	Log.Success("\nDone\n")

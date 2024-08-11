@@ -81,6 +81,7 @@ environmentVariables:
 packages:
   # --- BROWSERS ---
   - googlechrome # Example: install Google Chrome
+  - firefox --new-window # Example: open new terminal and install Firefox (doesn't wait for it to finish to start the next one)
 
   # --- PROGRAMS ---
 

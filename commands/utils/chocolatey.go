@@ -77,19 +77,27 @@ func (chocolatey) InstallSelf() {
 	}
 }
 
-func (chocolatey *chocolatey) InstallPackage(packageName string) {
+func (chocolatey *chocolatey) InstallPackage(packageName string, openInNewWindow bool) {
 	chocolateyPath := chocolatey.GetExecutablePath()
+	chocolateyPath = fmt.Sprintf(`. "%s"`, chocolateyPath)
+
 	powershell := Powershell.GetShellPath()
 
 	cmd := exec.Command(
 		powershell,
-		"-Command",
-		fmt.Sprintf(`&"%s"`, chocolateyPath),
-		"install",
-		packageName,
-		"-yf",
-		"--ignore-checksum",
+		"-Command", chocolateyPath,
+		"install", packageName,
+		"-yf", "--ignore-checksum",
 	)
+
+	if openInNewWindow {
+		cmd = exec.Command(
+			powershell, "-Command",
+			"Start-Process", powershell,
+			"-ArgumentList", fmt.Sprintf(`'-C', '%s install %s -yf --ignore-checksum; pause'`, chocolateyPath, packageName),
+			"-Verb", "RunAs",
+		)
+	}
 
 	cmd.Stdin = os.Stdin
 	cmd.Stdout = os.Stdout
