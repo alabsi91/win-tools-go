@@ -1,13 +1,13 @@
 package main
 
 import (
-	"github.com/alabsi91/win-tools/app"
 	"github.com/alabsi91/win-tools/commands"
+	"github.com/alabsi91/win-tools/commands/utils"
 	"github.com/alexflint/go-arg"
 	"github.com/charmbracelet/huh"
 )
 
-var Log = app.Log
+var Log = utils.Log
 
 type RunCMD struct {
 	ID      int `arg:"required"`
@@ -98,7 +98,7 @@ func main() {
 	// no command provided, ask for it
 	var chosenCommand string
 
-	huh.NewSelect[string]().
+	err := huh.NewSelect[string]().
 		Title("\nWhat would you like to do?").
 		Description("  Select a command to run:\n").
 		Options(
@@ -116,6 +116,11 @@ func main() {
 		).
 		Value(&chosenCommand).
 		Run()
+
+	if err != nil {
+		Log.Error("\nFailed to get user selection\n")
+		return
+	}
 
 	switch chosenCommand {
 	case "backup":

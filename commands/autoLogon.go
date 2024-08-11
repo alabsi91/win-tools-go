@@ -4,13 +4,12 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/charmbracelet/huh"
 )
 
-func askForUsername() string {
+func askForUsername() (string, error) {
 	var results string
 
 	validate := func(str string) error {
@@ -20,13 +19,14 @@ func askForUsername() string {
 		return nil
 	}
 
-	huh.NewInput().
-		Title("Please enter your username").
+	err := huh.NewInput().
+		Title("\nPlease enter your username").
 		Placeholder("The username you use to logon").
 		Validate(validate).
-		Value(&results).Run()
+		Value(&results).
+		Run()
 
-	return results
+	return results, err
 }
 
 func AutoLogon(username *string, domain *string, autoLogonCount *int, removeLegalPrompt *bool, backupFile *string) {
@@ -41,14 +41,14 @@ func AutoLogon(username *string, domain *string, autoLogonCount *int, removeLega
 
 	// check if username is provided, if not ask for it
 	if username == nil {
-		answer := askForUsername()
-		username = &answer
 
-		// when the user exit the prompt using CTRL + C
-		if len(answer) == 0 {
-			Log.Error("\nPlease enter your username\n")
+		answer, err := askForUsername()
+		if err != nil {
+			Log.Error("\nFailed to get user input\n")
 			return
 		}
+
+		username = &answer
 	}
 
 	scriptArgs := fmt.Sprintf(`-Username "%s"`, *username)
@@ -67,27 +67,14 @@ func AutoLogon(username *string, domain *string, autoLogonCount *int, removeLega
 
 	scriptPath := filepath.Join(AssetsPath, "autologon.ps1")
 
-	shell := Powershell.GetShellPath()
-
-	cmd := exec.Command(
-		shell,
-		"-Command",
+	err := Powershell.RunPathThroughCmd(
 		"Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force;",
 		fmt.Sprintf(`&"%s"`, scriptPath),
 		scriptArgs,
 	)
 
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if err := cmd.Start(); err != nil {
-		Log.Fatal(err.Error())
-		os.Exit(1)
-	}
-
-	if err := cmd.Wait(); err != nil {
-		Log.Fatal(err.Error())
+	if err != nil {
+		Log.Fatal("\n"+err.Error(), "\n")
 		os.Exit(1)
 	}
 

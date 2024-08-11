@@ -9,7 +9,7 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
-func askForSavePath() string {
+func askForSavePath() (string, error) {
 	var results string
 
 	validate := func(str string) error {
@@ -19,37 +19,36 @@ func askForSavePath() string {
 		return nil
 	}
 
-	huh.NewInput().
+	err := huh.NewInput().
 		Title("Please enter a path to save the config file template").
-		Placeholder("Example: \"F:\\config.yaml\"").
+		Placeholder("Example: F:\\config.yaml").
 		Validate(validate).
 		Value(&results).Run()
 
-	return results
+	return results, err
 }
 
 func CreateConfigTemplate(savePath *string) {
 
 	// check if the savePath is provided, if not, ask for it
 	if savePath == nil {
-		answer := askForSavePath()
-		savePath = &answer
 
-		// when the user exit the prompt using CTRL + C
-		if !strings.HasSuffix(answer, ".yaml") {
-			Log.Error("\nfile extension must be .yaml\n")
+		answer, err := askForSavePath()
+		if err != nil {
+			Log.Error("\nFailed to get user input\n")
 			return
 		}
+
+		savePath = &answer
 	}
 
 	// check if the savePath lead to a .yaml file, if not, ask for a new one
 	if !strings.HasSuffix(*savePath, ".yaml") {
-		Log.Error("\nfile extension must be .yaml\n")
-		answer := askForSavePath()
 
-		// when the user exit the prompt using CTRL + C
-		if !strings.HasSuffix(answer, ".yaml") {
-			Log.Error("\nfile extension must be .yaml\n")
+		Log.Error("\nfile extension must be .yaml\n")
+		answer, err := askForSavePath()
+		if err != nil {
+			Log.Error("\nFailed to get user input\n")
 			return
 		}
 

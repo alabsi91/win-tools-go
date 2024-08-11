@@ -3,7 +3,6 @@ package commands
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 )
 
@@ -19,26 +18,13 @@ func DisableFirewall() {
 
 	scriptPath := filepath.Join(AssetsPath, "disableFirewall.ps1")
 
-	shell := Powershell.GetShellPath()
-
-	cmd := exec.Command(
-		shell,
-		"-Command",
+	err := Powershell.RunPathThroughCmd(
 		"Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force;",
 		fmt.Sprintf(`&"%s"`, scriptPath),
 	)
 
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if err := cmd.Start(); err != nil {
-		Log.Fatal(err.Error())
-		os.Exit(1)
-	}
-
-	if err := cmd.Wait(); err != nil {
-		Log.Fatal(err.Error())
+	if err != nil {
+		Log.Fatal("\n"+err.Error(), "\n")
 		os.Exit(1)
 	}
 

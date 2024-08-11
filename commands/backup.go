@@ -3,19 +3,24 @@ package commands
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
+
+	"github.com/alabsi91/win-tools/commands/utils"
 )
+
+var Powershell = utils.Powershell
+var Log = utils.Log
+var AssetsPath = utils.AssetsPath
+var Chocolatey = utils.Chocolatey
 
 func BackupData(configFilePath *string) {
 
 	// no config file path provided, ask for it
 	if configFilePath == nil {
-		answer := AskForConfigFilePath()
 
-		// when the user exit the prompt using CTRL + C
-		if !Utils.IsPathExists(answer) {
-			Log.Error("\nfile not found. Please enter a valid path\n")
+		answer, err := utils.AskForConfigFilePath()
+		if err != nil {
+			Log.Error("\nFailed to get user input\n")
 			return
 		}
 
@@ -23,20 +28,19 @@ func BackupData(configFilePath *string) {
 	}
 
 	// config file path provided does not exist, ask for a new one
-	if !Utils.IsPathExists(*configFilePath) {
+	if !utils.IsPathExists(*configFilePath) {
 		Log.Error("\nfile not found. Please enter a valid path\n")
-		answer := AskForConfigFilePath()
 
-		// when the user exit the prompt using CTRL + C
-		if !Utils.IsPathExists(answer) {
-			Log.Error("\nfile not found. Please enter a valid path\n")
+		answer, err := utils.AskForConfigFilePath()
+		if err != nil {
+			Log.Error("\nFailed to get user input\n")
 			return
 		}
 
 		configFilePath = &answer
 	}
 
-	yamlData := ReadConfigFile(*configFilePath)
+	yamlData := utils.ReadConfigFile(*configFilePath)
 
 	// paths is empty, exit
 	if len(yamlData.Backup.Paths) == 0 {
@@ -45,7 +49,7 @@ func BackupData(configFilePath *string) {
 	}
 
 	// create the target path
-	isTargetPathExists := Utils.IsPathExists(yamlData.Backup.Target)
+	isTargetPathExists := utils.IsPathExists(yamlData.Backup.Target)
 	if !isTargetPathExists {
 		Log.Info("\nthe target path does not exist. It will be created\n")
 		// try to create the target path
@@ -60,7 +64,7 @@ func BackupData(configFilePath *string) {
 	Log.Info(fmt.Sprintf(`The target path is: "%s"`, yamlData.Backup.Target), "\n")
 
 	// loop over paths and copy the files and folders to the target path
-	PreparePathsString(yamlData.Backup.Paths)
+	utils.PreparePathsString(yamlData.Backup.Paths)
 	for _, path := range yamlData.Backup.Paths {
 
 		Log.Info(fmt.Sprintf(`Copying "%s"`, path))
@@ -68,31 +72,17 @@ func BackupData(configFilePath *string) {
 		baseFilename := filepath.Base(path)
 		targetPath := filepath.Join(yamlData.Backup.Target, baseFilename)
 
-		powershell := Powershell.GetShellPath()
-
-		cmd := exec.Command(
-			powershell,
-			"-Command",
+		err := Powershell.RunPathThroughCmd(
 			"Copy-Item",
 			"-Path", fmt.Sprintf(`"%s"`, path),
 			"-Destination", fmt.Sprintf(`"%s"`, targetPath),
 			"-Recurse", "-Force",
 		)
 
-		cmd.Stdin = os.Stdin
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-
-		if err := cmd.Start(); err != nil {
+		if err != nil {
 			Log.Fatal(err.Error())
 			os.Exit(1)
 		}
-
-		if err := cmd.Wait(); err != nil {
-			Log.Fatal(err.Error())
-			os.Exit(1)
-		}
-
 	}
 
 	Log.Success("\nBackup completed\n")

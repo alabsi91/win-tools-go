@@ -1,4 +1,4 @@
-package app
+package utils
 
 import (
 	"fmt"
@@ -46,7 +46,7 @@ func (powershell *powershell) GetShellPath() string {
 	}
 
 	// Failure
-	Log.Fatal("Failed to get Powershell executable path.")
+	Log.Fatal("\nFailed to get Powershell executable path\n")
 	os.Exit(1)
 
 	return "powershell"
@@ -173,22 +173,6 @@ func (powershell *powershell) RemoveWinPackage(packageName string) {
 	}
 }
 
-func (powershell *powershell) IsPolicySet() bool {
-	shellPath := powershell.GetShellPath()
-
-	cmd := exec.Command(shellPath, "-Command", `Get-ExecutionPolicy -Scope Process`)
-
-	output, err := cmd.Output()
-
-	if err != nil {
-		Log.Warning("Failed to check Powershell execution policy.")
-		return false
-	}
-
-	outputStr := strings.Trim(string(output), "\r\n ")
-	return outputStr != "Undefined"
-}
-
 func (powershell *powershell) RestartWinExplorer() {
 	shellPath := powershell.GetShellPath()
 
@@ -199,4 +183,24 @@ func (powershell *powershell) RestartWinExplorer() {
 	if err != nil {
 		Log.Warning("Failed to restart Windows Explorer.")
 	}
+}
+
+func (powershell *powershell) RunPathThroughCmd(args ...string) error {
+	shell := powershell.GetShellPath()
+
+	cmd := exec.Command(shell, append([]string{"-Command"}, args...)...)
+
+	cmd.Stdin = os.Stdin
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Start(); err != nil {
+		return err
+	}
+
+	if err := cmd.Wait(); err != nil {
+		return err
+	}
+
+	return nil
 }

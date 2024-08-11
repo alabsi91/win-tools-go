@@ -1,4 +1,4 @@
-package commands
+package utils
 
 import (
 	"errors"
@@ -7,15 +7,11 @@ import (
 	"path/filepath"
 	"regexp"
 
-	"github.com/alabsi91/win-tools/app"
 	"github.com/charmbracelet/huh"
 	"github.com/goccy/go-yaml"
 )
 
-var Log = app.Log
-var Utils = app.Utils
-var Chocolatey = app.Chocolatey
-var Powershell = app.Powershell
+
 
 var AssetsPath = func() string {
 	execPath, err := os.Executable()
@@ -60,23 +56,24 @@ func ReadConfigFile(path string) ConfigYamlType {
 	return config
 }
 
-func AskForConfigFilePath() string {
+func AskForConfigFilePath() (string, error) {
 	var results string
 
 	validate := func(str string) error {
-		if !Utils.IsPathExists(str) {
+		if IsPathExists(str) {
 			return errors.New("file not found. Please enter a valid path")
 		}
 		return nil
 	}
 
-	huh.NewInput().
-		Title("Please enter your config file path").
-		Placeholder("Example: \"F:\\config.yaml\"").
+	err := huh.NewInput().
+		Title("\nPlease enter your config file path").
+		Placeholder("Example: F:\\config.yaml").
 		Validate(validate).
-		Value(&results).Run()
+		Value(&results).
+		Run()
 
-	return results
+	return results, err
 }
 
 // Replace all environment variables with their values
@@ -88,4 +85,10 @@ func PreparePathsString(paths []string) {
 			return os.Getenv(m[1 : len(m)-1])
 		})
 	}
+}
+
+func IsPathExists(str string) bool {
+	path := filepath.Clean(str)
+	_, err := os.Stat(path)
+	return err == nil
 }

@@ -14,8 +14,10 @@ func CleanStartMenu() {
 
 	Log.Info("\nCleaning the start menu ...\n")
 
+	shell := Powershell.GetShellPath()
+
 	cmd := exec.Command(
-		Powershell.GetShellPath(),
+		shell,
 		"-Command",
 		"Copy-Item",
 		"-Path", fmt.Sprintf(`"%s"`, menuTemplatePath),
@@ -25,7 +27,7 @@ func CleanStartMenu() {
 
 	_, err := cmd.Output()
 	if err != nil {
-		Log.Error("Failed to clean the start menu")
+		Log.Error("\nFailed to clean the start menu\n")
 		return
 	}
 

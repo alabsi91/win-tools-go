@@ -8,11 +8,10 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
-func SetRegistry() {
-
-	// Create a new multi-select prompt
+func askToSelectRegistry() ([]string, error) {
 	var selected []string
-	huh.NewMultiSelect[string]().
+
+	err := huh.NewMultiSelect[string]().
 		Title("\nSelect the registry you want to modify").
 		Options(
 			huh.NewOption("Enable old Windows 10 context menu", "EnableWin10Context.reg"),
@@ -39,7 +38,20 @@ func SetRegistry() {
 			huh.NewOption("Enable dark mode", "EnableDarkMode.reg"),
 			huh.NewOption("Enable light mode", "EnableLightMode.reg"),
 		).
-		Value(&selected).Run()
+		Value(&selected).
+		Run()
+
+	return selected, err
+}
+
+func SetRegistry() {
+
+	selected, err := askToSelectRegistry()
+
+	if err != nil {
+		Log.Error("\nFailed to get user selection\n")
+		return
+	}
 
 	if len(selected) == 0 {
 		Log.Warning("\nNo registry selected\n")

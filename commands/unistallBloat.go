@@ -3,24 +3,15 @@ package commands
 import (
 	"fmt"
 	"os"
-	"os/exec"
 	"path/filepath"
 
 	"github.com/charmbracelet/huh"
 )
 
-func UninstallBloat() {
-	// has admin privileges
-	isAdmin := Powershell.IsAdmin()
-
-	if !isAdmin {
-		Log.Error("\nyou need admin privileges to run this command\n")
-		Log.Info("Please run this command from an elevated powershell session\n")
-		return
-	}
-
+func askToSelectBloatware() ([]string, error) {
 	var selected []string
-	huh.NewMultiSelect[string]().
+
+	err := huh.NewMultiSelect[string]().
 		Title("\nSelect the bloatware you want to uninstall").
 		Options(
 			huh.NewOption("Edge browser", "Microsoft.Edge"),
@@ -75,7 +66,29 @@ func UninstallBloat() {
 			huh.NewOption("Xbox Gaming Overlay", "Microsoft.XboxGamingOverlay"),
 			huh.NewOption("Dev Home", "Windows.DevHome"),
 		).
-		Value(&selected).Run()
+		Value(&selected).
+		Run()
+
+	return selected, err
+}
+
+func UninstallBloat() {
+	// has admin privileges
+	isAdmin := Powershell.IsAdmin()
+
+	if !isAdmin {
+		Log.Error("\nyou need admin privileges to run this command\n")
+		Log.Info("Please run this command from an elevated powershell session\n")
+		return
+	}
+
+	// ask user to select bloatware
+	selected, err := askToSelectBloatware()
+
+	if err != nil {
+		Log.Error("\nFailed to get user selection\n")
+		return
+	}
 
 	if len(selected) == 0 {
 		Log.Warning("\nNo bloatware selected\n")
@@ -93,20 +106,10 @@ func UninstallBloat() {
 
 			removeEdgeExePath := filepath.Join(AssetsPath, "RemoveEdgeOnly.exe")
 
-			shell := Powershell.GetShellPath()
-			cmd := exec.Command(shell, "-Command", fmt.Sprintf(`&"%s"`, removeEdgeExePath))
+			err := Powershell.RunPathThroughCmd(fmt.Sprintf(`&"%s"`, removeEdgeExePath))
 
-			cmd.Stdin = os.Stdin
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-
-			if err := cmd.Start(); err != nil {
-				Log.Fatal(err.Error())
-				os.Exit(1)
-			}
-
-			if err := cmd.Wait(); err != nil {
-				Log.Fatal(err.Error())
+			if err != nil {
+				Log.Fatal("\n"+err.Error(), "\n")
 				os.Exit(1)
 			}
 
@@ -117,25 +120,13 @@ func UninstallBloat() {
 		if option == "Microsoft.OneDrive" {
 			removeOneDriveScriptPath := filepath.Join(AssetsPath, "uninstallOneDrive.ps1")
 
-			shell := Powershell.GetShellPath()
-			cmd := exec.Command(
-				shell,
-				"-Command",
+			err := Powershell.RunPathThroughCmd(
 				"Set-ExecutionPolicy -ExecutionPolicy Bypass -Scope Process -Force;",
 				fmt.Sprintf(`&"%s"`, removeOneDriveScriptPath),
 			)
 
-			cmd.Stdin = os.Stdin
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-
-			if err := cmd.Start(); err != nil {
-				Log.Fatal(err.Error())
-				os.Exit(1)
-			}
-
-			if err := cmd.Wait(); err != nil {
-				Log.Fatal(err.Error())
+			if err != nil {
+				Log.Fatal("\n"+err.Error(), "\n")
 				os.Exit(1)
 			}
 

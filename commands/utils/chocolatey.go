@@ -1,9 +1,11 @@
-package app
+package utils
 
 import (
 	"fmt"
 	"os"
 	"os/exec"
+
+	"github.com/charmbracelet/huh"
 )
 
 const ChocolateyInstallPath = "C:\\ProgramData\\chocolatey\\bin\\choco.exe"
@@ -12,7 +14,7 @@ type chocolatey struct{}
 
 var Chocolatey = &chocolatey{}
 
-func (chocolatey) IsChocolateyInstalled() bool {
+func (chocolatey) IsInstalled() bool {
 	cmd := exec.Command("cmd", "/C", "choco", "--version")
 
 	output, err := cmd.Output()
@@ -20,12 +22,12 @@ func (chocolatey) IsChocolateyInstalled() bool {
 		return true
 	}
 
-	return Utils.IsPathExists(ChocolateyInstallPath)
+	return IsPathExists(ChocolateyInstallPath)
 }
 
-func (chocolatey) GetChocolateyPath() string {
+func (chocolatey) GetExecutablePath() string {
 	// first try to the default path
-	if Utils.IsPathExists(ChocolateyInstallPath) {
+	if IsPathExists(ChocolateyInstallPath) {
 		return ChocolateyInstallPath
 	}
 
@@ -34,22 +36,22 @@ func (chocolatey) GetChocolateyPath() string {
 
 	output, err := cmd.Output()
 	if err != nil {
-		Log.Fatal("Failed to get chocolatey executable path")
+		Log.Fatal("\nFailed to get chocolatey executable path\n")
 		os.Exit(1)
 	}
 
 	// verify if the path exists
 	path := string(output)
 
-	if !Utils.IsPathExists(path) {
-		Log.Fatal("Failed to get chocolatey executable path")
+	if !IsPathExists(path) {
+		Log.Fatal("\nFailed to get chocolatey executable path\n")
 		os.Exit(1)
 	}
 
 	return path
 }
 
-func (chocolatey) InstallChocolatey() {
+func (chocolatey) InstallSelf() {
 	powershell := Powershell.GetShellPath()
 
 	cmd := exec.Command(
@@ -65,18 +67,18 @@ func (chocolatey) InstallChocolatey() {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Start(); err != nil {
-		Log.Fatal(err.Error())
+		Log.Fatal("\n"+err.Error(), "\n")
 		os.Exit(1)
 	}
 
 	if err := cmd.Wait(); err != nil {
-		Log.Fatal(err.Error())
+		Log.Fatal("\n"+err.Error(), "\n")
 		os.Exit(1)
 	}
 }
 
-func (chocolatey *chocolatey) InstallChocolateyPackage(packageName string) {
-	chocolateyPath := chocolatey.GetChocolateyPath()
+func (chocolatey *chocolatey) InstallPackage(packageName string) {
+	chocolateyPath := chocolatey.GetExecutablePath()
 	powershell := Powershell.GetShellPath()
 
 	cmd := exec.Command(
@@ -93,12 +95,24 @@ func (chocolatey *chocolatey) InstallChocolateyPackage(packageName string) {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Start(); err != nil {
-		Log.Fatal("Failed to install chocolatey package:", packageName)
+		Log.Fatal("\nFailed to install chocolatey package:", packageName, "\n")
 		os.Exit(1)
 	}
 
 	if err := cmd.Wait(); err != nil {
-		Log.Fatal("Failed to install chocolatey package:", packageName)
+		Log.Fatal("\nFailed to install chocolatey package:", packageName, "\n")
 		os.Exit(1)
 	}
+}
+
+func (chocolatey) AskForInstallConfirmation() (bool, error) {
+	var answer bool = false
+
+	err := huh.NewConfirm().
+		Title("Chocolatey is not installed. Do you want to install it?").
+		Affirmative("Yes!").
+		Negative("No.").
+		Value(&answer).Run()
+
+	return answer, err
 }

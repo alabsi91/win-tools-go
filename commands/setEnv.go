@@ -1,15 +1,17 @@
 package commands
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/alabsi91/win-tools/commands/utils"
+)
 
 func SetEnvs(configFilePath *string) {
 	// no config file path provided, ask for it
 	if configFilePath == nil {
-		answer := AskForConfigFilePath()
-
-		// when the user exit the prompt using CTRL + C
-		if !Utils.IsPathExists(answer) {
-			Log.Error("\nfile not found. Please enter a valid path\n")
+		answer, err := utils.AskForConfigFilePath()
+		if err != nil {
+			Log.Error("\nFailed to get user input\n")
 			return
 		}
 
@@ -17,20 +19,19 @@ func SetEnvs(configFilePath *string) {
 	}
 
 	// config file path provided does not exist, ask for a new one
-	if !Utils.IsPathExists(*configFilePath) {
+	if !utils.IsPathExists(*configFilePath) {
 		Log.Error("\nfile not found. Please enter a valid path\n")
-		answer := AskForConfigFilePath()
 
-		// when the user exit the prompt using CTRL + C
-		if !Utils.IsPathExists(answer) {
-			Log.Error("\nfile not found. Please enter a valid path\n")
+		answer, err := utils.AskForConfigFilePath()
+		if err != nil {
+			Log.Error("\nFailed to get user input\n")
 			return
 		}
 
 		configFilePath = &answer
 	}
 
-	yamlData := ReadConfigFile(*configFilePath)
+	yamlData := utils.ReadConfigFile(*configFilePath)
 
 	// envs is empty, exit
 	if len(yamlData.EnvironmentVariables) == 0 {

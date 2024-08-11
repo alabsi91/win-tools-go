@@ -5,17 +5,17 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/alabsi91/win-tools/commands/utils"
 )
 
 func RunScripts(configFilePath *string) {
 
 	// no config file path provided, ask for it
 	if configFilePath == nil {
-		answer := AskForConfigFilePath()
-
-		// when the user exit the prompt using CTRL + C
-		if !Utils.IsPathExists(answer) {
-			Log.Error("\nfile not found. Please enter a valid path\n")
+		answer, err := utils.AskForConfigFilePath()
+		if err != nil {
+			Log.Error("\nFailed to get user input\n")
 			return
 		}
 
@@ -23,20 +23,19 @@ func RunScripts(configFilePath *string) {
 	}
 
 	// config file path provided does not exist, ask for a new one
-	if !Utils.IsPathExists(*configFilePath) {
+	if !utils.IsPathExists(*configFilePath) {
 		Log.Error("\nfile not found. Please enter a valid path\n")
-		answer := AskForConfigFilePath()
 
-		// when the user exit the prompt using CTRL + C
-		if !Utils.IsPathExists(answer) {
-			Log.Error("\nfile not found. Please enter a valid path\n")
+		answer, err := utils.AskForConfigFilePath()
+		if err != nil {
+			Log.Error("\nFailed to get user input\n")
 			return
 		}
 
 		configFilePath = &answer
 	}
 
-	yamlData := ReadConfigFile(*configFilePath)
+	yamlData := utils.ReadConfigFile(*configFilePath)
 
 	// scripts is empty, exit
 	if len(yamlData.Scripts) == 0 {
