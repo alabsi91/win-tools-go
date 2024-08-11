@@ -84,8 +84,7 @@ func BackupData(configFilePath *string) {
 		)
 
 		if err != nil {
-			Log.Fatal(err.Error())
-			os.Exit(1)
+			Log.Error("\nFailed to copy the path.\n", err.Error() , "\n")
 		}
 	}
 

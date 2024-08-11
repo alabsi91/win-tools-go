@@ -2,19 +2,10 @@ package commands
 
 import (
 	"fmt"
-	"io/fs"
-	"os"
 	"path/filepath"
 
 	"github.com/alabsi91/win-tools/commands/utils"
 )
-
-type CustomFS struct{}
-
-func (c CustomFS) Open(name string) (fs.File, error) {
-
-	return os.OpenFile(name, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
-}
 
 func RestoreData(configFilePath *string) {
 	// no config file path provided, ask for it
@@ -78,8 +69,7 @@ func RestoreData(configFilePath *string) {
 		)
 
 		if err != nil {
-			Log.Fatal("\n"+err.Error(), "\n")
-			os.Exit(1)
+			Log.Error("\nFailed to copy the path.\n", err.Error(), "\n")
 		}
 	}
 

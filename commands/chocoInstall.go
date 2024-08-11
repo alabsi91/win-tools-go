@@ -65,13 +65,14 @@ func InstallPackages(configFilePath *string) {
 
 	// loop through packages and install them
 	for _, packageName := range yamlData.Packages {
-		Log.Info("\n"+fmt.Sprintf(`Installing package: "%s"`, packageName), "\n")
 
 		openInNewWindow := false
 		if strings.Contains(packageName, "--new-window") {
 			openInNewWindow = true
 			packageName = strings.ReplaceAll(packageName, "--new-window", "")
 		}
+
+		Log.Info("\n"+fmt.Sprintf(`Installing package: "%s"`, packageName), "\n")
 
 		Chocolatey.InstallPackage(packageName, openInNewWindow)
 	}

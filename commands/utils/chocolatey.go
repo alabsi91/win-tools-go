@@ -83,35 +83,26 @@ func (chocolatey *chocolatey) InstallPackage(packageName string, openInNewWindow
 
 	powershell := Powershell.GetShellPath()
 
-	cmd := exec.Command(
-		powershell,
-		"-Command", chocolateyPath,
-		"install", packageName,
-		"-yf", "--ignore-checksum",
-	)
-
+	var err error
 	if openInNewWindow {
-		cmd = exec.Command(
-			powershell, "-Command",
+		err = Powershell.RunPathThroughCmd(
 			"Start-Process", powershell,
 			"-ArgumentList", fmt.Sprintf(`'-C', '%s install %s -yf --ignore-checksum; pause'`, chocolateyPath, packageName),
 			"-Verb", "RunAs",
 		)
+	} else {
+		err = Powershell.RunPathThroughCmd(
+			chocolateyPath,
+			"install", packageName,
+			"-yf", "--ignore-checksum",
+		)
 	}
 
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if err := cmd.Start(); err != nil {
-		Log.Fatal("\nFailed to install chocolatey package:", packageName, "\n")
-		os.Exit(1)
+	if err != nil {
+		Log.Error("\nfailed to install chocolatey package:", packageName, "\n")
+		return
 	}
 
-	if err := cmd.Wait(); err != nil {
-		Log.Fatal("\nFailed to install chocolatey package:", packageName, "\n")
-		os.Exit(1)
-	}
 }
 
 func (chocolatey) AskForInstallConfirmation() (bool, error) {
