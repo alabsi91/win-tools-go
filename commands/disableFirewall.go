@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 )
 
@@ -25,7 +24,6 @@ func DisableFirewall() {
 
 	if err != nil {
 		Log.Fatal("\n"+err.Error(), "\n")
-		os.Exit(1)
 	}
 
 	Log.Success("\nDone!\n")

@@ -37,7 +37,6 @@ func (chocolatey) GetExecutablePath() string {
 	output, err := cmd.Output()
 	if err != nil {
 		Log.Fatal("\nFailed to get chocolatey executable path\n")
-		os.Exit(1)
 	}
 
 	// verify if the path exists
@@ -45,7 +44,6 @@ func (chocolatey) GetExecutablePath() string {
 
 	if !IsPathExists(path) {
 		Log.Fatal("\nFailed to get chocolatey executable path\n")
-		os.Exit(1)
 	}
 
 	return path
@@ -68,12 +66,10 @@ func (chocolatey) InstallSelf() {
 
 	if err := cmd.Start(); err != nil {
 		Log.Fatal("\n"+err.Error(), "\n")
-		os.Exit(1)
 	}
 
 	if err := cmd.Wait(); err != nil {
 		Log.Fatal("\n"+err.Error(), "\n")
-		os.Exit(1)
 	}
 }
 

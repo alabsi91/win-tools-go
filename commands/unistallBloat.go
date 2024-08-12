@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/charmbracelet/huh"
@@ -110,7 +109,6 @@ func UninstallBloat() {
 
 			if err != nil {
 				Log.Fatal("\n"+err.Error(), "\n")
-				os.Exit(1)
 			}
 
 			continue
@@ -127,7 +125,6 @@ func UninstallBloat() {
 
 			if err != nil {
 				Log.Fatal("\n"+err.Error(), "\n")
-				os.Exit(1)
 			}
 
 			continue

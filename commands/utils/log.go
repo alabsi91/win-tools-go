@@ -2,6 +2,7 @@ package utils
 
 import (
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/charmbracelet/lipgloss"
@@ -25,7 +26,7 @@ var Log = log{
 		Success:      lipgloss.NewStyle().Foreground(lipgloss.Color("#04B575")),
 		Warning:      lipgloss.NewStyle().Foreground(lipgloss.Color("#F1C40F")),
 		Error:        lipgloss.NewStyle().Foreground(lipgloss.Color("#E74C3C")),
-		Info:         lipgloss.NewStyle().Foreground(lipgloss.Color("#3498DB")),
+		Info:         lipgloss.NewStyle().Foreground(lipgloss.Color("#5eb9ff")),
 		Log:          lipgloss.NewStyle(),
 		PaddingStyle: lipgloss.NewStyle().Faint(true),
 	},
@@ -82,6 +83,7 @@ func (l log) Error(strs ...string) {
 
 func (l log) Fatal(strs ...string) {
 	l.printLog("FATAL", l.Style.Error, strs...)
+	os.Exit(1)
 }
 
 func (l log) Info(strs ...string) {

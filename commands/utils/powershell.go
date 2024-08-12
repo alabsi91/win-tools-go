@@ -47,7 +47,6 @@ func (powershell *powershell) GetShellPath() string {
 
 	// Failure
 	Log.Fatal("\nFailed to get Powershell executable path\n")
-	os.Exit(1)
 
 	return "powershell"
 }
@@ -77,7 +76,6 @@ func (powershell *powershell) SetEnvVariable(key string, value string, scope str
 			Log.Fatal(
 				fmt.Sprintf(`Failed to set the environment variable "%s" with the value "%s".`, key, value),
 			)
-			os.Exit(1)
 		}
 
 		return
@@ -95,7 +93,6 @@ func (powershell *powershell) SetEnvVariable(key string, value string, scope str
 		Log.Fatal(
 			fmt.Sprintf(`Failed to set the environment variable "%s" with the value "%s".`, key, value),
 		)
-		os.Exit(1)
 	}
 }
 
@@ -137,14 +134,12 @@ func (powershell *powershell) RemoveWinPackage(packageName string) {
 		Log.Fatal(
 			fmt.Sprintf(`Failed to remove the package with the name "%s".`, packageName),
 		)
-		os.Exit(1)
 	}
 
 	if err := cmd.Wait(); err != nil {
 		Log.Fatal(
 			fmt.Sprintf(`Failed to remove the package with the name "%s".`, packageName),
 		)
-		os.Exit(1)
 	}
 
 	cmd = exec.Command(
@@ -162,14 +157,12 @@ func (powershell *powershell) RemoveWinPackage(packageName string) {
 		Log.Fatal(
 			fmt.Sprintf(`Failed to remove the package with the name "%s".`, packageName),
 		)
-		os.Exit(1)
 	}
 
 	if err := cmd.Wait(); err != nil {
 		Log.Fatal(
 			fmt.Sprintf(`Failed to remove the package with the name "%s".`, packageName),
 		)
-		os.Exit(1)
 	}
 }
 

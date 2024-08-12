@@ -43,14 +43,12 @@ func ReadConfigFile(path string) ConfigYamlType {
 	dat, err := os.ReadFile(path)
 	if err != nil {
 		Log.Fatal(fmt.Sprintf(`Failed to read config file: "%s"`, path))
-		os.Exit(1)
 	}
 
 	var config ConfigYamlType
 
 	if err := yaml.Unmarshal(dat, &config); err != nil {
 		Log.Fatal(fmt.Sprintf(`Failed to unmarshal config file: "%s"`, path))
-		os.Exit(1)
 	}
 
 	return config

@@ -3,7 +3,6 @@ package commands
 import (
 	"errors"
 	"fmt"
-	"os"
 	"path/filepath"
 
 	"github.com/charmbracelet/huh"
@@ -75,7 +74,6 @@ func AutoLogon(username *string, domain *string, autoLogonCount *int, removeLega
 
 	if err != nil {
 		Log.Fatal("\n"+err.Error(), "\n")
-		os.Exit(1)
 	}
 
 	Log.Success("\nDone!\n")
