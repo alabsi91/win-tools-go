@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 	"os"
-	"path/filepath"
+	"strings"
 
 	"github.com/alabsi91/win-tools/commands/utils"
 )
@@ -69,22 +69,11 @@ func BackupData(configFilePath *string) {
 
 		Log.Info(fmt.Sprintf(`Copying "%s"`, path))
 
-		baseFilename := filepath.Base(path)
-		targetPath := filepath.Join(yamlData.Backup.Target, baseFilename)
-
-		if utils.IsPathExists(targetPath) {
-			targetPath = filepath.Clean(yamlData.Backup.Target)
-		}
-
-		err := Powershell.RunPathThroughCmd(
-			"Copy-Item",
-			"-Path", fmt.Sprintf(`"%s"`, path),
-			"-Destination", fmt.Sprintf(`"%s"`, targetPath),
-			"-Recurse", "-Force",
-		)
+		err := utils.Copy(path, yamlData.Backup.Target)
 
 		if err != nil {
-			Log.Error("\nFailed to copy the path.\n", err.Error() , "\n")
+			formattedErr := strings.Join(strings.Split(err.Error(), ": "), "\n")
+			Log.Error("\nfailed to copy the path: ", path, "\n"+formattedErr, "\n")
 		}
 	}
 

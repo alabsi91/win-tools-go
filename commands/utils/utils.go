@@ -11,8 +11,6 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
-
-
 var AssetsPath = func() string {
 	execPath, err := os.Executable()
 	if err != nil {

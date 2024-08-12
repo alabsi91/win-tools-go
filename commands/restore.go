@@ -3,6 +3,7 @@ package commands
 import (
 	"fmt"
 	"path/filepath"
+	"strings"
 
 	"github.com/alabsi91/win-tools/commands/utils"
 )
@@ -12,7 +13,7 @@ func RestoreData(configFilePath *string) {
 	if configFilePath == nil {
 		answer, err := utils.AskForConfigFilePath()
 		if err != nil {
-			Log.Error("\nFailed to get user input\n")
+			Log.Error("\nfailed to get user input\n")
 			return
 		}
 
@@ -25,7 +26,7 @@ func RestoreData(configFilePath *string) {
 
 		answer, err := utils.AskForConfigFilePath()
 		if err != nil {
-			Log.Error("\nFailed to get user input\n")
+			Log.Error("\nfailed to get user input\n")
 			return
 		}
 
@@ -43,7 +44,7 @@ func RestoreData(configFilePath *string) {
 	// check the target path
 	isTargetPathExists := utils.IsPathExists(yamlData.Backup.Target)
 	if !isTargetPathExists {
-		Log.Error(fmt.Sprintf(`the target path does not exist: "%s"`, yamlData.Backup.Target), "\n")
+		Log.Error(fmt.Sprintf("\n"+`the target path does not exist: "%s"`, yamlData.Backup.Target), "\n")
 		return
 	}
 
@@ -52,24 +53,18 @@ func RestoreData(configFilePath *string) {
 
 	// loop over paths and copy the files and folders to the target path
 	utils.PreparePathsString(yamlData.Backup.Paths)
-	for _, toPath := range yamlData.Backup.Paths {
-		fromPath := filepath.Join(yamlData.Backup.Target, filepath.Base(toPath))
+	for _, path := range yamlData.Backup.Paths {
 
-		if utils.IsPathExists(toPath) {
-			toPath = filepath.Dir(toPath)
-		}
+		fromPath := filepath.Join(yamlData.Backup.Target, filepath.Base(path))
+		toPath := filepath.Dir(path)
 
 		Log.Info(fmt.Sprintf(`Copying "%s" to "%s"`, fromPath, toPath))
 
-		err := Powershell.RunPathThroughCmd(
-			"Copy-Item",
-			"-Path", fmt.Sprintf(`"%s"`, fromPath),
-			"-Destination", fmt.Sprintf(`"%s"`, toPath),
-			"-Recurse", "-Force",
-		)
+		err := utils.Copy(fromPath, toPath)
 
 		if err != nil {
-			Log.Error("\nFailed to copy the path.\n", err.Error(), "\n")
+			formattedErr := strings.Join(strings.Split(err.Error(), ": "), "\n")
+			Log.Error("\nfailed to copy the path:", fromPath, "\n"+formattedErr, "\n")
 		}
 	}
 

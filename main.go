@@ -9,11 +9,6 @@ import (
 
 var Log = utils.Log
 
-type RunCMD struct {
-	ID      int `arg:"required"`
-	Timeout int
-}
-
 type ConfigPathArg struct {
 	ConfigPath *string `arg:"--config" placeholder:"[PATH]" help:"YAML config file path"`
 }
@@ -22,8 +17,6 @@ type CreateTemplateArgs struct {
 	TemplatePath *string `arg:"--save-path" placeholder:"[PATH]" help:"Output path for the template"`
 }
 
-type NoArgs struct{}
-
 type AutoLogonArgs struct {
 	Username     *string `arg:"--username" placeholder:"" help:"The username of the user to automatically logon as"`
 	Domain       *string `arg:"--domain" placeholder:"" help:"The domain of the user to automatically logon as"`
@@ -31,6 +24,8 @@ type AutoLogonArgs struct {
 	RemovePrompt *bool   `arg:"--remove-prompt" help:"Removes the system banner to ensure interventionless logon"`
 	BackupFile   *string `arg:"--backup-file" placeholder:"" help:"If specified the existing settings such as the system banner text will be backed up to the specified file"`
 }
+
+type NoArgs struct{}
 
 var args struct {
 	Backup               *ConfigPathArg      `arg:"subcommand:backup" help:"Create a backup of specified paths as defined in a YAML configuration file."`
