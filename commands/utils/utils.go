@@ -58,7 +58,7 @@ func AskForConfigFilePath() (string, error) {
 	var results string
 
 	validate := func(str string) error {
-		if IsPathExists(str) {
+		if !IsPathExists(str) {
 			return errors.New("file not found. Please enter a valid path")
 		}
 		return nil
