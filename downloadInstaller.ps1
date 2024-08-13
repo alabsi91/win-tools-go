@@ -25,7 +25,7 @@ Invoke-WebRequest -Uri $assetUrl -OutFile $localFilePath
 if (Test-Path $localFilePath) {
     # Launch the installer
     Start-Process -FilePath $localFilePath -Wait -ArgumentList "/S"
-    Start-Process "win-tools"
-} else {
+}
+else {
     Write-Host "Failed to download the installer."
 }

@@ -32,6 +32,11 @@ var Log = log{
 	},
 }
 
+const titleWidth = 13
+const newlineSeparator = "- "
+const newlinePaddingWidth = titleWidth + 3 // titleWidth + "|" + "|" + " "
+
+// splitOnNewline splits a given string into leading newlines, content, and trailing newlines
 func splitOnNewline(input string) (string, string, string) {
 	// Check for leading newlines
 	newlineStart := 0
@@ -49,28 +54,33 @@ func splitOnNewline(input string) (string, string, string) {
 	return input[:newlineStart], input[newlineStart:newlineEnd], input[newlineEnd:]
 }
 
-func (l log) printLog(title string, style lipgloss.Style, strs ...string) {
-	formattedTitle := style.Render("|") +
-		lipgloss.NewStyle().Inherit(style).Reverse(true).Bold(true).Align(lipgloss.Center).Width(13).Render(title) +
+// formatTitle formats a title with the given style
+func formatTitle(title string, style lipgloss.Style) string {
+	return style.Render("|") +
+		lipgloss.NewStyle().Inherit(style).Reverse(true).Bold(true).Align(lipgloss.Center).Width(titleWidth).Render(title) +
 		style.Render("|")
+}
+
+func (l log) printLog(title string, style lipgloss.Style, strs ...string) {
+	title = formatTitle(title, style)
 
 	fullString := strings.Join(strs, " ")
 	leadingNewlines, msg, trailingNewlines := splitOnNewline(fullString)
 
 	split := strings.Split(msg, "\n")
 
-	var res string
+	// format new lines so that they are aligned
+	var content string
 	for i, s := range split {
 		isFirst := i == 0
-
 		if !isFirst {
-			res += "\n" + l.Style.PaddingStyle.Render(strings.Repeat("- ", 8))
+			paddingString := strings.Repeat(newlineSeparator, newlinePaddingWidth/len(newlineSeparator))
+			content += "\n" + l.Style.PaddingStyle.Render(paddingString)
 		}
-
-		res += style.Render(s)
+		content += style.Render(s)
 	}
 
-	fmt.Println(leadingNewlines+formattedTitle, res+trailingNewlines)
+	fmt.Println(leadingNewlines+title, content+trailingNewlines)
 }
 
 func (l log) Success(strs ...string) {
@@ -81,6 +91,7 @@ func (l log) Error(strs ...string) {
 	l.printLog("ERROR", l.Style.Error, strs...)
 }
 
+// FATAL logs a fatal error and exits the program
 func (l log) Fatal(strs ...string) {
 	l.printLog("FATAL", l.Style.Error, strs...)
 	os.Exit(1)

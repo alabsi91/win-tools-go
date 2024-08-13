@@ -8,6 +8,9 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
+// askForUsername prompts the user to enter their username
+//   - Validates if the username is not empty
+//   - Returns an error if the user cancels the prompt
 func askForUsername() (string, error) {
 	var results string
 
@@ -18,12 +21,17 @@ func askForUsername() (string, error) {
 		return nil
 	}
 
-	err := huh.NewInput().
-		Title("\nPlease enter your username").
-		Placeholder("The username you use to logon").
-		Validate(validate).
-		Value(&results).
-		Run()
+	println("")
+
+	err := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("\nPlease enter your username").
+				Placeholder("The username you use to logon").
+				Validate(validate).
+				Value(&results),
+		),
+	).Run()
 
 	return results, err
 }
@@ -40,13 +48,11 @@ func AutoLogon(username *string, domain *string, autoLogonCount *int, removeLega
 
 	// check if username is provided, if not ask for it
 	if username == nil {
-
 		answer, err := askForUsername()
 		if err != nil {
-			Log.Error("\nFailed to get user input\n")
+			Log.Error("failed to get user input\n")
 			return
 		}
-
 		username = &answer
 	}
 

@@ -13,7 +13,7 @@ func RestoreData(configFilePath *string) {
 	if configFilePath == nil {
 		answer, err := utils.AskForConfigFilePath()
 		if err != nil {
-			Log.Error("\nfailed to get user input\n")
+			Log.Error("failed to get user input\n")
 			return
 		}
 
@@ -26,7 +26,7 @@ func RestoreData(configFilePath *string) {
 
 		answer, err := utils.AskForConfigFilePath()
 		if err != nil {
-			Log.Error("\nfailed to get user input\n")
+			Log.Error("failed to get user input\n")
 			return
 		}
 

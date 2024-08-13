@@ -11,6 +11,7 @@ import (
 	"github.com/goccy/go-yaml"
 )
 
+// AssetsPath is the path to the assets directory which lives alongside the executable
 var AssetsPath = func() string {
 	execPath, err := os.Executable()
 	if err != nil {
@@ -23,6 +24,7 @@ var AssetsPath = func() string {
 	return filepath.Join(execDir, "assets")
 }()
 
+// ConfigYamlType defines the structure of the config YAML file
 type ConfigYamlType struct {
 	Backup struct {
 		Paths  []string
@@ -37,6 +39,10 @@ type ConfigYamlType struct {
 	Scripts  []string
 }
 
+// ReadConfigFile reads and unmarshal the config file of type YAML
+//   - On error, the program will exit with a fatal error message
+//
+// Returns: ConfigYamlType
 func ReadConfigFile(path string) ConfigYamlType {
 	dat, err := os.ReadFile(path)
 	if err != nil {
@@ -52,8 +58,14 @@ func ReadConfigFile(path string) ConfigYamlType {
 	return config
 }
 
+// AskForConfigFilePath prompts the user to enter a config file path
+//   - Accepts relative and absolute paths
+//   - Validates if the path exists
+//   - Returns an error if the user cancels the prompt
 func AskForConfigFilePath() (string, error) {
 	var results string
+
+	println("")
 
 	validate := func(str string) error {
 		if !IsPathExists(str) {
@@ -62,17 +74,21 @@ func AskForConfigFilePath() (string, error) {
 		return nil
 	}
 
-	err := huh.NewInput().
-		Title("\nPlease enter your config file path").
-		Placeholder("Example: F:\\config.yaml").
-		Validate(validate).
-		Value(&results).
+	err := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Please enter your config file path").
+				Placeholder("Example: F:\\config.yaml").
+				Validate(validate).
+				Value(&results),
+		),
+	).
 		Run()
 
 	return results, err
 }
 
-// Replace all environment variables with their values
+// PreparePathsString prepares paths with environment variables by replacing them with their values
 func PreparePathsString(paths []string) {
 	r := regexp.MustCompile("%.+%")
 
@@ -83,6 +99,7 @@ func PreparePathsString(paths []string) {
 	}
 }
 
+// IsPathExists checks if a path exists in the system
 func IsPathExists(str string) bool {
 	path := filepath.Clean(str)
 	_, err := os.Stat(path)

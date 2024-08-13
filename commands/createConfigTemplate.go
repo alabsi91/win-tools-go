@@ -19,11 +19,17 @@ func askForSavePath() (string, error) {
 		return nil
 	}
 
-	err := huh.NewInput().
-		Title("Please enter a path to save the config file template").
-		Placeholder("Example: F:\\config.yaml").
-		Validate(validate).
-		Value(&results).Run()
+	println("")
+
+	err := huh.NewForm(
+		huh.NewGroup(
+			huh.NewInput().
+				Title("Please enter a path to save the config file template").
+				Placeholder("Example: F:\\config.yaml").
+				Validate(validate).
+				Value(&results),
+		),
+	).Run()
 
 	return results, err
 }
@@ -35,7 +41,7 @@ func CreateConfigTemplate(savePath *string) {
 
 		answer, err := askForSavePath()
 		if err != nil {
-			Log.Error("\nFailed to get user input\n")
+			Log.Error("failed to get user input\n")
 			return
 		}
 
@@ -48,7 +54,7 @@ func CreateConfigTemplate(savePath *string) {
 		Log.Error("\nfile extension must be .yaml\n")
 		answer, err := askForSavePath()
 		if err != nil {
-			Log.Error("\nFailed to get user input\n")
+			Log.Error("failed to get user input\n")
 			return
 		}
 

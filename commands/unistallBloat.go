@@ -7,66 +7,73 @@ import (
 	"github.com/charmbracelet/huh"
 )
 
+// askToSelectBloatware prompts the user to select the bloatware they want to uninstall
+//   - Returns an error if the user cancels the prompt
 func askToSelectBloatware() ([]string, error) {
 	var selected []string
 
-	err := huh.NewMultiSelect[string]().
-		Title("\nSelect the bloatware you want to uninstall").
-		Options(
-			huh.NewOption("Edge browser", "Microsoft.Edge"),
-			huh.NewOption("OneDrive", "Microsoft.OneDrive"),
-			huh.NewOption("Clipchamp", "Clipchamp.Clipchamp"),
-			huh.NewOption("3D Builder", "Microsoft.3DBuilder"),
-			huh.NewOption("Finance", "Microsoft.BingFinance"),
-			huh.NewOption("Food and Drink", "Microsoft.BingFoodAndDrink"),
-			huh.NewOption("Health and Fitness", "Microsoft.BingHealthAndFitness"),
-			huh.NewOption("News", "Microsoft.News"),
-			huh.NewOption("Bing News", "Microsoft.BingNews"),
-			huh.NewOption("Sports", "Microsoft.BingSports"),
-			huh.NewOption("Translator", "Microsoft.BingTranslator"),
-			huh.NewOption("Travel", "Microsoft.BingTravel"),
-			huh.NewOption("Weather", "Microsoft.BingWeather"),
-			huh.NewOption("Messaging", "Microsoft.Messaging"),
-			huh.NewOption("3D Viewer", "Microsoft.Microsoft3DViewer"),
-			huh.NewOption("Office Hub", "Microsoft.MicrosoftOfficeHub"),
-			huh.NewOption("Power BI", "Microsoft.MicrosoftPowerBIForWindows"),
-			huh.NewOption("Solitaire Collection", "Microsoft.MicrosoftSolitaireCollection"),
-			huh.NewOption("Sticky Notes", "Microsoft.MicrosoftStickyNotes"),
-			huh.NewOption("Mixed Reality Portal", "Microsoft.MixedReality.Portal"),
-			huh.NewOption("Network Speed Test", "Microsoft.NetworkSpeedTest"),
-			huh.NewOption("OneNote", "Microsoft.Office.OneNote"),
-			huh.NewOption("Sway", "Microsoft.Office.Sway"),
-			huh.NewOption("OneConnect", "Microsoft.OneConnect"),
-			huh.NewOption("Print 3D", "Microsoft.Print3D"),
-			huh.NewOption("Skype", "Microsoft.SkypeApp"),
-			huh.NewOption("To-Do", "Microsoft.Todos"),
-			huh.NewOption("Alarms", "Microsoft.WindowsAlarms"),
-			huh.NewOption("Feedback Hub", "Microsoft.WindowsFeedbackHub"),
-			huh.NewOption("Maps", "Microsoft.WindowsMaps"),
-			huh.NewOption("Sound Recorder", "Microsoft.WindowsSoundRecorder"),
-			huh.NewOption("Movies & TV", "Microsoft.ZuneVideo"),
-			huh.NewOption("Family", "MicrosoftCorporationII.MicrosoftFamily"),
-			huh.NewOption("Teams", "MicrosoftTeams"),
-			huh.NewOption("Get Help", "Microsoft.GetHelp"),
-			huh.NewOption("MS Paint", "Microsoft.MSPaint"),
-			huh.NewOption("Paint", "Microsoft.Paint"),
-			huh.NewOption("Whiteboard", "Microsoft.Whiteboard"),
-			huh.NewOption("Photos", "Microsoft.Windows.Photos"),
-			huh.NewOption("Calculator", "Microsoft.WindowsCalculator"),
-			huh.NewOption("Camera", "Microsoft.WindowsCamera"),
-			huh.NewOption("Your Phone", "Microsoft.YourPhone"),
-			huh.NewOption("Music", "Microsoft.ZuneMusic"),
-			huh.NewOption("Gaming App", "Microsoft.GamingApp"),
-			huh.NewOption("Outlook", "Microsoft.OutlookForWindows"),
-			huh.NewOption("People", "Microsoft.People"),
-			huh.NewOption("Power Automate Desktop", "Microsoft.PowerAutomateDesktop"),
-			huh.NewOption("Mail and Calendar", "Microsoft.windowscommunicationsapps"),
-			huh.NewOption("Xbox Game Overlay", "Microsoft.XboxGameOverlay"),
-			huh.NewOption("Xbox Gaming Overlay", "Microsoft.XboxGamingOverlay"),
-			huh.NewOption("Dev Home", "Windows.DevHome"),
-		).
-		Value(&selected).
-		Run()
+	println("")
+
+	err := huh.NewForm(
+		huh.NewGroup(
+			huh.NewMultiSelect[string]().
+				Title("\nSelect the bloatware you want to uninstall").
+				Options(
+					huh.NewOption("Edge browser", "Microsoft.Edge"),
+					huh.NewOption("OneDrive", "Microsoft.OneDrive"),
+					huh.NewOption("Clipchamp", "Clipchamp.Clipchamp"),
+					huh.NewOption("3D Builder", "Microsoft.3DBuilder"),
+					huh.NewOption("Finance", "Microsoft.BingFinance"),
+					huh.NewOption("Food and Drink", "Microsoft.BingFoodAndDrink"),
+					huh.NewOption("Health and Fitness", "Microsoft.BingHealthAndFitness"),
+					huh.NewOption("News", "Microsoft.News"),
+					huh.NewOption("Bing News", "Microsoft.BingNews"),
+					huh.NewOption("Sports", "Microsoft.BingSports"),
+					huh.NewOption("Translator", "Microsoft.BingTranslator"),
+					huh.NewOption("Travel", "Microsoft.BingTravel"),
+					huh.NewOption("Weather", "Microsoft.BingWeather"),
+					huh.NewOption("Messaging", "Microsoft.Messaging"),
+					huh.NewOption("3D Viewer", "Microsoft.Microsoft3DViewer"),
+					huh.NewOption("Office Hub", "Microsoft.MicrosoftOfficeHub"),
+					huh.NewOption("Power BI", "Microsoft.MicrosoftPowerBIForWindows"),
+					huh.NewOption("Solitaire Collection", "Microsoft.MicrosoftSolitaireCollection"),
+					huh.NewOption("Sticky Notes", "Microsoft.MicrosoftStickyNotes"),
+					huh.NewOption("Mixed Reality Portal", "Microsoft.MixedReality.Portal"),
+					huh.NewOption("Network Speed Test", "Microsoft.NetworkSpeedTest"),
+					huh.NewOption("OneNote", "Microsoft.Office.OneNote"),
+					huh.NewOption("Sway", "Microsoft.Office.Sway"),
+					huh.NewOption("OneConnect", "Microsoft.OneConnect"),
+					huh.NewOption("Print 3D", "Microsoft.Print3D"),
+					huh.NewOption("Skype", "Microsoft.SkypeApp"),
+					huh.NewOption("To-Do", "Microsoft.Todos"),
+					huh.NewOption("Alarms", "Microsoft.WindowsAlarms"),
+					huh.NewOption("Feedback Hub", "Microsoft.WindowsFeedbackHub"),
+					huh.NewOption("Maps", "Microsoft.WindowsMaps"),
+					huh.NewOption("Sound Recorder", "Microsoft.WindowsSoundRecorder"),
+					huh.NewOption("Movies & TV", "Microsoft.ZuneVideo"),
+					huh.NewOption("Family", "MicrosoftCorporationII.MicrosoftFamily"),
+					huh.NewOption("Teams", "MicrosoftTeams"),
+					huh.NewOption("Get Help", "Microsoft.GetHelp"),
+					huh.NewOption("MS Paint", "Microsoft.MSPaint"),
+					huh.NewOption("Paint", "Microsoft.Paint"),
+					huh.NewOption("Whiteboard", "Microsoft.Whiteboard"),
+					huh.NewOption("Photos", "Microsoft.Windows.Photos"),
+					huh.NewOption("Calculator", "Microsoft.WindowsCalculator"),
+					huh.NewOption("Camera", "Microsoft.WindowsCamera"),
+					huh.NewOption("Your Phone", "Microsoft.YourPhone"),
+					huh.NewOption("Music", "Microsoft.ZuneMusic"),
+					huh.NewOption("Gaming App", "Microsoft.GamingApp"),
+					huh.NewOption("Outlook", "Microsoft.OutlookForWindows"),
+					huh.NewOption("People", "Microsoft.People"),
+					huh.NewOption("Power Automate Desktop", "Microsoft.PowerAutomateDesktop"),
+					huh.NewOption("Mail and Calendar", "Microsoft.windowscommunicationsapps"),
+					huh.NewOption("Xbox Game Overlay", "Microsoft.XboxGameOverlay"),
+					huh.NewOption("Xbox Gaming Overlay", "Microsoft.XboxGamingOverlay"),
+					huh.NewOption("Dev Home", "Windows.DevHome"),
+				).
+				Value(&selected),
+		),
+	).Run()
 
 	return selected, err
 }
@@ -85,7 +92,7 @@ func UninstallBloat() {
 	selected, err := askToSelectBloatware()
 
 	if err != nil {
-		Log.Error("\nFailed to get user selection\n")
+		Log.Error("failed to get user selection\n")
 		return
 	}
 
@@ -131,7 +138,10 @@ func UninstallBloat() {
 		}
 
 		// remove app
-		Powershell.RemoveWinPackage(option)
+		err := Powershell.RemoveWinPackage(option)
+		if err != nil {
+			Log.Error("\n"+err.Error(), "\n")
+		}
 	}
 
 	Log.Success("\nUninstall complete\n")

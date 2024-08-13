@@ -20,7 +20,14 @@ var Powershell = &powershell{}
 
 var EnvironmentScope = environmentScope{"User", "Machine"}
 
-func (powershell *powershell) GetShellPath() string {
+// GetShellName returns the powershell executable name
+//   - First will try if "pwsh" exists (Powershell version 7.1+)
+//   - If not, will try "powershell"
+//   - If neither exists, will exit with a fatal error
+//   - The result will be cached, so it will only be executed once per session
+//
+// Returns: "pwsh" or "powershell"
+func (powershell *powershell) GetShellName() string {
 
 	// try get from cache
 	if powershell.shellPath != nil {
@@ -51,15 +58,18 @@ func (powershell *powershell) GetShellPath() string {
 	return "powershell"
 }
 
-func (powershell *powershell) SetEnvVariable(key string, value string, scope string) {
-	shellPath := powershell.GetShellPath()
+// SetEnvVariable sets an environment variable in the given scope
+//   - key: name of the environment variable
+//   - value: value of the environment variable
+//   - scope: "User" or "Machine"
+//
+// Returns: error if any
+func (powershell *powershell) SetEnvVariable(key string, value string, scope string) error {
+	shellPath := powershell.GetShellName()
 
 	// Make sure the user has admin privileges when using the scope "Machine"
 	if scope == EnvironmentScope.Machine && !powershell.IsAdmin() {
-		Log.Error(
-			fmt.Sprintf(`You dont have enough privileges to set the system environment variable "%s" with the value "%s".`, key, value),
-		)
-		return
+		return fmt.Errorf(`you dont have enough privileges to set the system environment variable "%s" with the value "%s"`, key, value)
 	}
 
 	// Add to a new path
@@ -73,12 +83,10 @@ func (powershell *powershell) SetEnvVariable(key string, value string, scope str
 
 		_, err := cmd.Output()
 		if err != nil {
-			Log.Fatal(
-				fmt.Sprintf(`Failed to set the environment variable "%s" with the value "%s".`, key, value),
-			)
+			return fmt.Errorf(`failed to set the environment variable "%s" with the value "%s"`, key, value)
 		}
 
-		return
+		return nil
 	}
 
 	// Add key value
@@ -90,14 +98,19 @@ func (powershell *powershell) SetEnvVariable(key string, value string, scope str
 
 	_, err := cmd.Output()
 	if err != nil {
-		Log.Fatal(
-			fmt.Sprintf(`Failed to set the environment variable "%s" with the value "%s".`, key, value),
-		)
+		return fmt.Errorf(`failed to set the environment variable "%s" with the value "%s"`, key, value)
 	}
+
+	return nil
 }
 
+// IsAdmin checks if the current user has admin privileges.
+//
+// returns false when encountering an error.
+//
+// Returns: true if the user has admin privileges
 func (powershell *powershell) IsAdmin() bool {
-	shellPath := powershell.GetShellPath()
+	shellPath := powershell.GetShellName()
 
 	cmd := exec.Command(
 		shellPath,
@@ -115,9 +128,9 @@ func (powershell *powershell) IsAdmin() bool {
 	return outputStr == "True"
 }
 
-func (powershell *powershell) RemoveWinPackage(packageName string) {
-
-	shellPath := powershell.GetShellPath()
+// RemoveWinPackage removes a Windows package (bloatware)
+func (powershell *powershell) RemoveWinPackage(packageName string) error {
+	shellPath := powershell.GetShellName()
 
 	cmd := exec.Command(
 		shellPath,
@@ -131,15 +144,11 @@ func (powershell *powershell) RemoveWinPackage(packageName string) {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Start(); err != nil {
-		Log.Fatal(
-			fmt.Sprintf(`Failed to remove the package with the name "%s".`, packageName),
-		)
+		return fmt.Errorf(`failed to remove the package with the name "%s"`, packageName)
 	}
 
 	if err := cmd.Wait(); err != nil {
-		Log.Fatal(
-			fmt.Sprintf(`Failed to remove the package with the name "%s".`, packageName),
-		)
+		return fmt.Errorf(`failed to remove the package with the name "%s"`, packageName)
 	}
 
 	cmd = exec.Command(
@@ -154,20 +163,20 @@ func (powershell *powershell) RemoveWinPackage(packageName string) {
 	cmd.Stderr = os.Stderr
 
 	if err := cmd.Start(); err != nil {
-		Log.Fatal(
-			fmt.Sprintf(`Failed to remove the package with the name "%s".`, packageName),
-		)
+		return fmt.Errorf(`failed to remove the package with the name "%s"`, packageName)
 	}
 
 	if err := cmd.Wait(); err != nil {
-		Log.Fatal(
-			fmt.Sprintf(`Failed to remove the package with the name "%s".`, packageName),
-		)
+		return fmt.Errorf(`failed to remove the package with the name "%s"`, packageName)
 	}
+
+	return nil
 }
 
+// RestartWinExplorer restarts Windows Explorer
+//   - Logs a warning if it fails
 func (powershell *powershell) RestartWinExplorer() {
-	shellPath := powershell.GetShellPath()
+	shellPath := powershell.GetShellName()
 
 	cmd := exec.Command(shellPath, "-Command", "stop-process", "-name", "explorer", "–force")
 
@@ -178,8 +187,9 @@ func (powershell *powershell) RestartWinExplorer() {
 	}
 }
 
+// RunPathThroughCmd runs a powershell command and streams the output to the console
 func (powershell *powershell) RunPathThroughCmd(args ...string) error {
-	shell := powershell.GetShellPath()
+	shell := powershell.GetShellName()
 
 	cmd := exec.Command(shell, append([]string{"-Command"}, args...)...)
 

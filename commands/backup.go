@@ -20,7 +20,7 @@ func BackupData(configFilePath *string) {
 
 		answer, err := utils.AskForConfigFilePath()
 		if err != nil {
-			Log.Error("\nFailed to get user input\n")
+			Log.Error("failed to get user input\n")
 			return
 		}
 
@@ -33,7 +33,7 @@ func BackupData(configFilePath *string) {
 
 		answer, err := utils.AskForConfigFilePath()
 		if err != nil {
-			Log.Error("\nFailed to get user input\n")
+			Log.Error("failed to get user input\n")
 			return
 		}
 

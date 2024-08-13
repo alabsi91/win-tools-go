@@ -15,7 +15,7 @@ func RunScripts(configFilePath *string) {
 	if configFilePath == nil {
 		answer, err := utils.AskForConfigFilePath()
 		if err != nil {
-			Log.Error("\nFailed to get user input\n")
+			Log.Error("failed to get user input\n")
 			return
 		}
 
@@ -28,7 +28,7 @@ func RunScripts(configFilePath *string) {
 
 		answer, err := utils.AskForConfigFilePath()
 		if err != nil {
-			Log.Error("\nFailed to get user input\n")
+			Log.Error("failed to get user input\n")
 			return
 		}
 
@@ -58,7 +58,7 @@ func RunScripts(configFilePath *string) {
 
 		script, isPowershell := strings.CutPrefix(script, "powershell")
 		if isPowershell {
-			shell = Powershell.GetShellPath()
+			shell = Powershell.GetShellName()
 			command = "-Command"
 		}
 

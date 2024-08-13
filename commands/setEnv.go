@@ -11,7 +11,7 @@ func SetEnvs(configFilePath *string) {
 	if configFilePath == nil {
 		answer, err := utils.AskForConfigFilePath()
 		if err != nil {
-			Log.Error("\nFailed to get user input\n")
+			Log.Error("failed to get user input\n")
 			return
 		}
 
@@ -24,7 +24,7 @@ func SetEnvs(configFilePath *string) {
 
 		answer, err := utils.AskForConfigFilePath()
 		if err != nil {
-			Log.Error("\nFailed to get user input\n")
+			Log.Error("failed to get user input\n")
 			return
 		}
 
@@ -48,7 +48,10 @@ func SetEnvs(configFilePath *string) {
 	// loop through the envs
 	for _, env := range yamlData.EnvironmentVariables {
 		Log.Info(fmt.Sprintf(`Setting environment variable: %s="%s"`, env.Key, env.Value))
-		Powershell.SetEnvVariable(env.Key, env.Value, env.Scope)
+		err := Powershell.SetEnvVariable(env.Key, env.Value, env.Scope)
+		if err != nil {
+			Log.Error("\n"+err.Error(), "\n")
+		}
 	}
 
 	Log.Success("\nEnvironment variables set successfully\n")

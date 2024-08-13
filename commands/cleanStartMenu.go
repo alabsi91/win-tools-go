@@ -14,7 +14,7 @@ func CleanStartMenu() {
 
 	Log.Info("\nCleaning the start menu ...\n")
 
-	shell := Powershell.GetShellPath()
+	shell := Powershell.GetShellName()
 
 	cmd := exec.Command(
 		shell,

@@ -27,7 +27,7 @@ type AutoLogonArgs struct {
 
 type NoArgs struct{}
 
-var args struct {
+type ArgsType struct {
 	Backup               *ConfigPathArg      `arg:"subcommand:backup" help:"Create a backup of specified paths as defined in a YAML configuration file."`
 	Restore              *ConfigPathArg      `arg:"subcommand:restore" help:"Restore files and directories from a backup using the paths specified in a YAML configuration file."`
 	Install              *ConfigPathArg      `arg:"subcommand:choco-install" help:"Install Chocolatey packages according to the list provided in a YAML configuration file."`
@@ -41,107 +41,83 @@ var args struct {
 	UninstallBloat       *NoArgs             `arg:"subcommand:uninstall-bloat" help:"Uninstall default Microsoft bloatware."`
 }
 
+var args ArgsType
+
 func main() {
 
-	arg.MustParse(&args)
+	parsedArg := arg.MustParse(&args)
 
-	if args.Backup != nil {
-		commands.BackupData(args.Backup.ConfigPath)
-		return
-	}
-	if args.Restore != nil {
-		commands.RestoreData(args.Restore.ConfigPath)
-		return
-	}
-	if args.Install != nil {
-		commands.InstallPackages(args.Install.ConfigPath)
-		return
-	}
-	if args.RunScripts != nil {
-		commands.RunScripts(args.RunScripts.ConfigPath)
-		return
-	}
-	if args.SetEnvs != nil {
-		commands.SetEnvs(args.SetEnvs.ConfigPath)
-		return
-	}
-	if args.CreateConfigTemplate != nil {
-		commands.CreateConfigTemplate(args.CreateConfigTemplate.TemplatePath)
-		return
-	}
-	if args.SetRegistry != nil {
-		commands.SetRegistry()
-		return
-	}
-	if args.CleanStartMenu != nil {
-		commands.CleanStartMenu()
-		return
-	}
-	if args.AutoLogon != nil {
-		commands.AutoLogon(args.AutoLogon.Username, args.AutoLogon.Domain, args.AutoLogon.AutoLogon, args.AutoLogon.RemovePrompt, args.AutoLogon.BackupFile)
-		return
-	}
-	if args.DisableFirewall != nil {
-		commands.DisableFirewall()
-		return
-	}
-	if args.UninstallBloat != nil {
-		commands.UninstallBloat()
+	enteredSubcommands := parsedArg.SubcommandNames()
+	if len(enteredSubcommands) > 0 {
+		runCommand(enteredSubcommands[0], &args)
 		return
 	}
 
+	// * No command provided, ask to select one
 	Log.Info("\nRun `win-tools --help` for more information.\n")
-
-	// no command provided, ask for it
-	var chosenCommand string
-
-	err := huh.NewSelect[string]().
-		Title("\nWhat would you like to do?").
-		Description("  Select a command to run:\n").
-		Options(
-			huh.NewOption("Backup", "backup"),
-			huh.NewOption("Restore", "restore"),
-			huh.NewOption("Chocolatey install", "install"),
-			huh.NewOption("Run scripts", "run-scripts"),
-			huh.NewOption("Set environment variables", "set-envs"),
-			huh.NewOption("Create config template", "create-template"),
-			huh.NewOption("Set registry", "set-registry"),
-			huh.NewOption("Clean start menu", "clean-menu"),
-			huh.NewOption("Enable auto logon", "auto-logon"),
-			huh.NewOption("Disable Windows firewall", "disable-firewall"),
-			huh.NewOption("Uninstall bloatware", "uninstall-bloat"),
-		).
-		Value(&chosenCommand).
-		Run()
-
+	chosenCommand, err := askToSelectCommand()
 	if err != nil {
-		Log.Error("\nFailed to get user selection\n")
+		Log.Error("failed to get user selection\n")
 		return
 	}
 
-	switch chosenCommand {
+	runCommand(chosenCommand, &args)
+}
+
+func runCommand(command string, args *ArgsType) {
+	switch command {
 	case "backup":
-		commands.BackupData(nil)
+		commands.BackupData(args.Backup.ConfigPath)
 	case "restore":
-		commands.RestoreData(nil)
+		commands.RestoreData(args.Restore.ConfigPath)
 	case "install":
-		commands.InstallPackages(nil)
+		commands.InstallPackages(args.Install.ConfigPath)
 	case "run-scripts":
-		commands.RunScripts(nil)
+		commands.RunScripts(args.RunScripts.ConfigPath)
 	case "set-envs":
-		commands.SetEnvs(nil)
+		commands.SetEnvs(args.SetEnvs.ConfigPath)
 	case "create-template":
-		commands.CreateConfigTemplate(nil)
+		commands.CreateConfigTemplate(args.CreateConfigTemplate.TemplatePath)
 	case "set-registry":
 		commands.SetRegistry()
 	case "clean-menu":
 		commands.CleanStartMenu()
 	case "auto-logon":
-		commands.AutoLogon(nil, nil, nil, nil, nil)
+		commands.AutoLogon(args.AutoLogon.Username, args.AutoLogon.Domain, args.AutoLogon.AutoLogon, args.AutoLogon.RemovePrompt, args.AutoLogon.BackupFile)
 	case "disable-firewall":
 		commands.DisableFirewall()
 	case "uninstall-bloat":
 		commands.UninstallBloat()
 	}
+}
 
+// askToSelectCommand prompts the user to select a command
+//   - Returns an error if the user cancels the prompt
+func askToSelectCommand() (string, error) {
+	var chosenCommand string
+
+	err := huh.NewForm(
+		huh.NewGroup(
+			huh.NewSelect[string]().
+				Title("What would you like to do?").
+				Description("Select a command to run:").
+				Options(
+					huh.NewOption("Backup", "backup"),
+					huh.NewOption("Restore", "restore"),
+					huh.NewOption("Chocolatey install", "install"),
+					huh.NewOption("Run scripts", "run-scripts"),
+					huh.NewOption("Set environment variables", "set-envs"),
+					huh.NewOption("Create config template", "create-template"),
+					huh.NewOption("Set registry", "set-registry"),
+					huh.NewOption("Clean start menu", "clean-menu"),
+					huh.NewOption("Enable auto logon", "auto-logon"),
+					huh.NewOption("Disable Windows firewall", "disable-firewall"),
+					huh.NewOption("Uninstall bloatware", "uninstall-bloat"),
+				).
+				Value(&chosenCommand),
+		),
+	).
+		Run()
+
+	return chosenCommand, err
 }

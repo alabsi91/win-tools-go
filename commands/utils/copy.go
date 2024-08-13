@@ -16,8 +16,37 @@ const (
 	Directory
 )
 
-// IsDir checks if the provided path is a directory, file, or unknown (non-existent).
-func IsDir(path string) PathType {
+// Copy copies a file or directory from the source to the destination folder.
+//   - Overwrites any existing files or directories in the destination folder.
+//   - If the source is a directory, it will be copied recursively.
+//   - When copying a file, the destination path should not include the file name.
+//   - When copying a directory, the source path will be copied inside the destination path.
+//
+// Returns: An error if the copy operation fails.
+func Copy(source, destination string) error {
+
+	// Check the source path
+	sourcePathType := isDir(source)
+	if sourcePathType == Unknown {
+		return errors.New("Copy source file does not exist")
+	}
+
+	// copy a file
+	if sourcePathType == File {
+		return copyFile(source, destination)
+	}
+
+	// copy a directory
+	if sourcePathType == Directory {
+		destination = filepath.Join(destination, filepath.Base(source))
+		return copyDirectory(source, destination)
+	}
+
+	return nil
+}
+
+// isDir checks if the provided path is a directory, file, or unknown (non-existent).
+func isDir(path string) PathType {
 	info, err := os.Stat(path)
 	if err != nil {
 		return Unknown
@@ -31,14 +60,12 @@ func IsDir(path string) PathType {
 	return File
 }
 
-// CopyFile copies a file from the source to the destination folder.
-//
+// copyFile copies a file from the source to the destination folder.
 //   - The destination path should be a folder. If it doesn't exist, it will be created.
 //   - This function overwrites the destination file if it already exists.
-func CopyFile(source, destination string) error {
-
-	// Construct the destination file path
-	destinationFilePath := filepath.Join(destination, filepath.Base(source))
+//
+// Returns: An error if the copy operation fails.
+func copyFile(source, destination string) error {
 
 	// Open the source file
 	sourceFile, err := os.Open(source)
@@ -48,19 +75,19 @@ func CopyFile(source, destination string) error {
 	defer sourceFile.Close()
 
 	// Check the destination path
-	destinationType := IsDir(destination)
-
-	// If the destination path is a file, return an error
+	destinationType := isDir(destination)
 	if destinationType == File {
 		return errors.New("CopyFile destination path is a file, should be a directory")
 	}
 
-	// If the destination directory doesn't exist, create it
+	// Create the destination directory if it doesn't exist
 	if destinationType == Unknown {
 		if err := os.MkdirAll(destination, os.ModePerm); err != nil {
 			return fmt.Errorf("CopyFile failed to create destination directory: %w", err)
 		}
 	}
+
+	destinationFilePath := filepath.Join(destination, filepath.Base(source))
 
 	// Create or overwrite the destination file
 	destinationFile, err := os.Create(destinationFilePath)
@@ -77,10 +104,14 @@ func CopyFile(source, destination string) error {
 	return nil
 }
 
-// ListEntries lists all files and directories at the first level under the given root directory.
+// listEntries lists all files and directories at the first level under the given root directory.
+//   - This function does not recurse into subdirectories.
 //
-// It does not check if the root path exists or is a directory.
-func ListEntries(root string) ([]os.DirEntry, error) {
+// Returns:
+//   - A list of directory entries.
+//   - An error if the list operation fails.
+func listEntries(root string) ([]os.DirEntry, error) {
+
 	var entries []os.DirEntry
 
 	dir, err := os.Open(root)
@@ -97,14 +128,16 @@ func ListEntries(root string) ([]os.DirEntry, error) {
 	return entries, nil
 }
 
-// CopyDirectory copies a directory from the source to the destination folder.
-//
-//   - Both source and destination should be directory paths
+// copyDirectory copies a directory with its contents recursively.
+//   - Both source and destination should be directory paths.
+//   - Overwrites any existing files/directories in the destination directory.
 //   - When looping through the entries, if an error occurs, it will continue to the next entry and return all errors at the end
-func CopyDirectory(source, destination string) error {
+//
+// Returns: An error if the copy operation fails.
+func copyDirectory(source, destination string) error {
 
 	// Check the destination path
-	destinationPathType := IsDir(destination)
+	destinationPathType := isDir(destination)
 	if destinationPathType == File {
 		return errors.New("CopyDirectory destination path is a file, should be a directory")
 	}
@@ -115,7 +148,7 @@ func CopyDirectory(source, destination string) error {
 	}
 
 	// Get the list of files in the source directory
-	entries, err := ListEntries(source)
+	entries, err := listEntries(source)
 	if err != nil {
 		return fmt.Errorf("CopyDirectory failed to list files in source directory: %w", err)
 	}
@@ -128,14 +161,14 @@ func CopyDirectory(source, destination string) error {
 
 		// Recursively copy directories
 		if entry.IsDir() {
-			if err := CopyDirectory(srcPath, destPath); err != nil {
+			if err := copyDirectory(srcPath, destPath); err != nil {
 				catchErrors = append(catchErrors, fmt.Errorf("CopyDirectory failed to copy directory '%s': %w", srcPath, err))
 			}
 			continue
 		}
 
 		// Copy files
-		if err := CopyFile(srcPath, destination); err != nil {
+		if err := copyFile(srcPath, destination); err != nil {
 			catchErrors = append(catchErrors, fmt.Errorf("CopyDirectory failed to copy file '%s': %s", srcPath, err))
 		}
 
@@ -143,28 +176,6 @@ func CopyDirectory(source, destination string) error {
 
 	if len(catchErrors) > 0 {
 		return errors.Join(catchErrors...)
-	}
-
-	return nil
-}
-
-func Copy(source, destination string) error {
-
-	// Check the source path
-	sourcePathType := IsDir(source)
-	if sourcePathType == Unknown {
-		return errors.New("Copy source file does not exist")
-	}
-
-	// copy a file
-	if sourcePathType == File {
-		return CopyFile(source, destination)
-	}
-
-	// copy a directory
-	if sourcePathType == Directory {
-		destination = filepath.Join(destination, filepath.Base(source))
-		return CopyDirectory(source, destination)
 	}
 
 	return nil

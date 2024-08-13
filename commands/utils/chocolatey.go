@@ -35,14 +35,11 @@ func (chocolatey) IsInstalled() bool {
 }
 
 // GetExecutablePath retrieves the path to the Chocolatey executable.
-//
-// This method follows a specific sequence to locate the executable:
 //  1. First, it checks the default installation path for Chocolatey.
 //  2. If the executable is not found in the default path, it attempts to retrieve the path from the environment variables.
 //  3. If neither method succeeds, the program will exit with an error, indicating that the Chocolatey executable could not be located.
 //
-// Returns:
-//   - The absolute path to the Chocolatey executable as a string.
+// Returns: The absolute path to the Chocolatey executable as a string.
 func (chocolatey) GetExecutablePath() string {
 	// first try to the default path
 	if IsPathExists(ChocolateyInstallPath) {
@@ -68,16 +65,12 @@ func (chocolatey) GetExecutablePath() string {
 }
 
 // InstallSelf installs Chocolatey on the system using a PowerShell command.
-//
 //   - Uses a PowerShell command to perform the installation.
 //   - Must be run with elevated privileges (administrator rights).
 //   - Does not check for admin privileges before running the command.
 //   - Exits the program if the installation command fails.
-//
-// Returns:
-// - None.
 func (chocolatey) InstallSelf() {
-	powershell := Powershell.GetShellPath()
+	powershell := Powershell.GetShellName()
 
 	cmd := exec.Command(
 		powershell,
@@ -101,21 +94,17 @@ func (chocolatey) InstallSelf() {
 }
 
 // InstallPackage installs a package using Chocolatey.
-//
 //   - Uses a PowerShell command to perform the installation and streams the output.
 //   - On error, prints an error message without exiting the program or returning an error.
 //   - Takes the package name as the first parameter (packageName).
 //   - Takes a boolean as the second parameter (openInNewWindow):
 //   - If true, starts the process in a new terminal window without waiting for it to finish.
 //   - If false, runs the process in the current context.
-//
-// Returns:
-// - None.
 func (chocolatey *chocolatey) InstallPackage(packageName string, openInNewWindow bool) {
 	chocolateyPath := chocolatey.GetExecutablePath()
 	chocolateyPath = fmt.Sprintf(`. "%s"`, chocolateyPath)
 
-	powershell := Powershell.GetShellPath()
+	powershell := Powershell.GetShellName()
 
 	var err error
 	if openInNewWindow {
@@ -140,7 +129,6 @@ func (chocolatey *chocolatey) InstallPackage(packageName string, openInNewWindow
 }
 
 // AskForInstallConfirmation asks the user if Chocolatey should be installed.
-//
 //   - Displays a prompt asking the user if Chocolatey should be installed.
 //   - If the user confirms/denies, returns a boolean.
 //   - If the user cancels the prompt using Ctrl+C for example, returns an error.
