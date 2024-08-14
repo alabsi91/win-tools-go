@@ -21,6 +21,7 @@ func askToSelectBloatware() ([]string, error) {
 				Options(
 					huh.NewOption("Edge browser", "Microsoft.Edge"),
 					huh.NewOption("OneDrive", "Microsoft.OneDrive"),
+					huh.NewOption("Windows Store", "Microsoft.WindowsStore"),
 					huh.NewOption("Clipchamp", "Clipchamp.Clipchamp"),
 					huh.NewOption("3D Builder", "Microsoft.3DBuilder"),
 					huh.NewOption("Finance", "Microsoft.BingFinance"),
@@ -78,6 +79,23 @@ func askToSelectBloatware() ([]string, error) {
 	return selected, err
 }
 
+// confirmToUninstallEdge prompts the user to confirm if they want to uninstall Edge
+func confirmToUninstallEdge() (bool, error) {
+	var answer bool = false
+
+	err := huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().
+				Title("Are you sure you want to uninstall Microsoft Edge?").
+				Affirmative("Yes!").
+				Negative("No.").
+				Value(&answer),
+		),
+	).Run()
+
+	return answer, err
+}
+
 func UninstallBloat() {
 	// has admin privileges
 	isAdmin := Powershell.IsAdmin()
@@ -110,10 +128,20 @@ func UninstallBloat() {
 		if option == "Microsoft.Edge" {
 			Log.Warning("\nUninstalling Microsoft Edge will uninstall the browser and keep the web view.\nSome Microsoft apps like copilot will not work and web search in taskbar search will not work.\n")
 
+			confirm, err := confirmToUninstallEdge()
+			if err != nil {
+				Log.Error("\nfailed to get user selection\n")
+				continue
+			}
+
+			if !confirm {
+				Log.Info("\nSkipping Microsoft Edge uninstall\n")
+				continue
+			}
+
 			removeEdgeExePath := filepath.Join(AssetsPath, "RemoveEdgeOnly.exe")
 
-			err := Powershell.RunPathThroughCmd(fmt.Sprintf(`&"%s"`, removeEdgeExePath))
-
+			err = Powershell.RunPathThroughCmd(fmt.Sprintf(`&"%s"`, removeEdgeExePath))
 			if err != nil {
 				Log.Fatal("\n"+err.Error(), "\n")
 			}

@@ -139,11 +139,15 @@ func (chocolatey *chocolatey) InstallPackage(packageName string, openInNewWindow
 func (chocolatey) AskForInstallConfirmation() (bool, error) {
 	var answer bool = false
 
-	err := huh.NewConfirm().
-		Title("Chocolatey is not installed. Do you want to install it?").
-		Affirmative("Yes!").
-		Negative("No.").
-		Value(&answer).Run()
+	err := huh.NewForm(
+		huh.NewGroup(
+			huh.NewConfirm().
+				Title("Chocolatey is not installed. Do you want to install it?").
+				Affirmative("Yes!").
+				Negative("No.").
+				Value(&answer),
+		),
+	).Run()
 
 	return answer, err
 }

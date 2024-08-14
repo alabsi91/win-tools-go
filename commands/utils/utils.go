@@ -15,7 +15,7 @@ import (
 var AssetsPath = func() string {
 	execPath, err := os.Executable()
 	if err != nil {
-		Log.Error(fmt.Sprintf("Error getting executable path: %v\n", err))
+		Log.Error(fmt.Sprintf("error getting executable path: %v\n", err))
 		return ""
 	}
 
@@ -82,8 +82,7 @@ func AskForConfigFilePath() (string, error) {
 				Validate(validate).
 				Value(&results),
 		),
-	).
-		Run()
+	).Run()
 
 	return results, err
 }
