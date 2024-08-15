@@ -15,7 +15,7 @@ func askForUsername() (string, error) {
 	var results string
 
 	validate := func(str string) error {
-		if len(str) == 0 {
+		if str == "" {
 			return errors.New("please enter your username")
 		}
 		return nil

@@ -51,7 +51,7 @@ func BackupData(configFilePath *string) {
 	// create the target path
 	isTargetPathExists := utils.IsPathExists(yamlData.Backup.Target)
 	if !isTargetPathExists {
-		Log.Info("\nthe target path does not exist. It will be created\n")
+		Log.Info("\nthe target path does not exist. It will be created")
 		// try to create the target path
 		err := os.MkdirAll(yamlData.Backup.Target, os.ModePerm)
 		if err != nil {

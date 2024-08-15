@@ -1,6 +1,9 @@
 package main
 
 import (
+	"reflect"
+	"strings"
+
 	"github.com/alabsi91/win-tools/commands"
 	"github.com/alabsi91/win-tools/commands/utils"
 	"github.com/alexflint/go-arg"
@@ -34,11 +37,11 @@ type ArgsType struct {
 	RunScripts           *ConfigPathArg      `arg:"subcommand:run-scripts" help:"Execute a series of scripts defined in a YAML configuration file."`
 	SetEnvs              *ConfigPathArg      `arg:"subcommand:set-envs" help:"Set environment variables as defined in a YAML configuration file."`
 	CreateConfigTemplate *CreateTemplateArgs `arg:"subcommand:create-template" help:"Generate a new YAML template for configuration, including placeholders for paths, scripts, and environment variables."`
-	SetRegistry          *NoArgs             `arg:"subcommand:set-registry" help:"Select a predefined registry to set."`
+	SetRegistry          *NoArgs             `arg:"subcommand:set-registry" help:"Select multiple predefined registry keys to set."`
 	CleanStartMenu       *NoArgs             `arg:"subcommand:clean-menu" help:"Clean start menu from all icons."`
 	AutoLogon            *AutoLogonArgs      `arg:"subcommand:auto-logon" help:"Enables auto logon when the computer starts."`
 	DisableFirewall      *NoArgs             `arg:"subcommand:disable-firewall" help:"Disable Windows firewall, Windows Defender, and Windows Defender Cloud."`
-	UninstallBloat       *NoArgs             `arg:"subcommand:uninstall-bloat" help:"Uninstall default Microsoft bloatware."`
+	UninstallBloat       *NoArgs             `arg:"subcommand:uninstall-bloat" help:"Select multiple predefined Windows apps to uninstall."`
 }
 
 var args ArgsType
@@ -65,30 +68,91 @@ func main() {
 }
 
 func runCommand(command string, args *ArgsType) {
+
 	switch command {
+
 	case "backup":
+		if args.Backup == nil {
+			commands.BackupData(nil)
+			break
+		}
 		commands.BackupData(args.Backup.ConfigPath)
+
 	case "restore":
+		if args.Restore == nil {
+			commands.RestoreData(nil)
+			break
+		}
 		commands.RestoreData(args.Restore.ConfigPath)
+
 	case "install":
+		if args.Install == nil {
+			commands.InstallPackages(nil)
+			break
+		}
 		commands.InstallPackages(args.Install.ConfigPath)
+
 	case "run-scripts":
+		if args.RunScripts == nil {
+			commands.RunScripts(nil)
+			break
+		}
 		commands.RunScripts(args.RunScripts.ConfigPath)
+
 	case "set-envs":
+		if args.SetEnvs == nil {
+			commands.SetEnvs(nil)
+			break
+		}
 		commands.SetEnvs(args.SetEnvs.ConfigPath)
+
 	case "create-template":
+		if args.CreateConfigTemplate == nil {
+			commands.CreateConfigTemplate(nil)
+			break
+		}
 		commands.CreateConfigTemplate(args.CreateConfigTemplate.TemplatePath)
+
 	case "set-registry":
 		commands.SetRegistry()
+
 	case "clean-menu":
 		commands.CleanStartMenu()
+
 	case "auto-logon":
+		if args.AutoLogon == nil {
+			commands.AutoLogon(nil, nil, nil, nil, nil)
+			break
+		}
 		commands.AutoLogon(args.AutoLogon.Username, args.AutoLogon.Domain, args.AutoLogon.AutoLogon, args.AutoLogon.RemovePrompt, args.AutoLogon.BackupFile)
+
 	case "disable-firewall":
 		commands.DisableFirewall()
+
 	case "uninstall-bloat":
 		commands.UninstallBloat()
 	}
+}
+
+// getHelpMessages
+// parses the help message for a given subcommand
+// from the 'args' struct tag.
+//
+// Returns: help message string
+func getHelpMessages(command string) string {
+	v := reflect.TypeOf(args)
+
+	for i := 0; i < v.NumField(); i++ {
+		field := v.Field(i)
+		subcommand, _ := strings.CutPrefix(field.Tag.Get("arg"), "subcommand:")
+		help := field.Tag.Get("help")
+
+		if subcommand == command {
+			return help
+		}
+	}
+
+	return ""
 }
 
 // askToSelectCommand prompts the user to select a command
@@ -104,7 +168,7 @@ func askToSelectCommand() (string, error) {
 				Options(
 					huh.NewOption("Backup", "backup"),
 					huh.NewOption("Restore", "restore"),
-					huh.NewOption("Chocolatey install", "install"),
+					huh.NewOption("Chocolatey install", "choco-install"),
 					huh.NewOption("Run scripts", "run-scripts"),
 					huh.NewOption("Set environment variables", "set-envs"),
 					huh.NewOption("Create config template", "create-template"),
@@ -115,9 +179,17 @@ func askToSelectCommand() (string, error) {
 					huh.NewOption("Uninstall bloatware", "uninstall-bloat"),
 				).
 				Value(&chosenCommand),
+
+			// Print help message for selected subcommand
+			huh.NewNote().
+				DescriptionFunc(
+					func() string {
+						return getHelpMessages(chosenCommand)
+					},
+					&chosenCommand,
+				),
 		),
-	).
-		Run()
+	).Run()
 
 	return chosenCommand, err
 }
