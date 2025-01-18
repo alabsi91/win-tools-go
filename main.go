@@ -85,7 +85,7 @@ func runCommand(command string, args *ArgsType) {
 		}
 		commands.RestoreData(args.Restore.ConfigPath)
 
-	case "install":
+	case "choco-install":
 		if args.Install == nil {
 			commands.InstallPackages(nil)
 			break
